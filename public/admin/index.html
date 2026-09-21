@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <main class="container admin-container">
+    <h1>Quiz Admin</h1>
+
+    <section id="login-view">
+      <h2>Log in</h2>
+      <form id="login-form">
+        <label>Email <input type="email" id="login-email" autocomplete="email" required /></label>
+        <label>Password <input type="password" id="login-password" autocomplete="current-password" required /></label>
+        <button type="submit">Log in</button>
+      </form>
+      <p id="login-error" class="error"></p>
+    </section>
+
+    <section id="dashboard-view" hidden>
+      <div class="dashboard-header">
+        <span id="current-user"></span>
+        <button id="logout-btn" type="button">Log out</button>
+      </div>
+
+      <nav class="tabs">
+        <button type="button" class="tab-btn active" data-tab="questions">Questions</button>
+        <button type="button" class="tab-btn" data-tab="submissions">Submissions</button>
+        <button type="button" class="tab-btn" data-tab="users" id="users-tab-btn" hidden>Users</button>
+      </nav>
+
+      <section id="questions-tab" class="tab-panel">
+        <div class="question-actions">
+          <button id="new-question-btn" type="button">+ New Question</button>
+          <button id="new-question-bank-btn" type="button">+ New Question Bank</button>
+          <button id="import-questions-btn" type="button">Import Questions</button>
+          <button id="export-questions-btn" type="button">Export Questions</button>
+        </div>
+        <div id="question-groups"></div>
+
+        <dialog id="import-dialog">
+          <form id="import-form">
+            <h3>Bulk Import Questions</h3>
+            <label>Question bank
+              <select id="import-question-bank"></select>
+            </label>
+            <label>Upload .txt file
+              <input type="file" id="import-file" accept=".txt,text/plain" />
+            </label>
+            <label>Import text
+              <textarea id="import-text" rows="14" placeholder="[MultipleChoice]&#10;What is the capital of France?&#10;*Paris&#10;London&#10;Berlin&#10;Madrid"></textarea>
+            </label>
+            <p class="hint">Blocks start with a <code>[MultipleChoice]</code>, <code>[TrueFalse]</code>, <code>[MultiSelect]</code>, or <code>[ShortAnswer]</code> header, followed by the question and its options/answers. Prefix correct answers with <code>*</code>. Optionally add <code>@QuestionBank: bank name</code> on its own line before a block to assign it and every following block to that bank (until a new <code>@QuestionBank:</code> line appears), or directly after a block's answers to assign just that one question (overrides both the batch value and the dropdown above). Bank names that don't exist yet are created automatically.</p>
+            <p id="import-form-error" class="error"></p>
+            <ul id="import-form-details" class="error"></ul>
+            <div class="dialog-actions">
+              <button type="button" id="import-cancel-btn">Cancel</button>
+              <button type="submit">Import</button>
+            </div>
+          </form>
+        </dialog>
+
+        <dialog id="question-dialog">
+          <form id="question-form">
+            <h3 id="question-form-title">New Question</h3>
+            <label>Type
+              <select id="q-type" required>
+                <option value="multiple-choice">Multiple choice</option>
+                <option value="true-false">True / False</option>
+                <option value="multi-select">Multi-select</option>
+                <option value="short-answer">Short answer</option>
+              </select>
+            </label>
+            <label>Question text <input type="text" id="q-text" required /></label>
+            <label>Question bank
+              <select id="q-question-bank"></select>
+            </label>
+
+            <div id="q-options-field" class="type-field">
+              <label>Options (one per line)</label>
+              <textarea id="q-options" rows="4"></textarea>
+              <label>Correct index (multiple-choice) <input type="number" id="q-correct-index" min="0" /></label>
+              <label>Correct indexes, comma-separated (multi-select) <input type="text" id="q-correct-indexes" /></label>
+            </div>
+
+            <div id="q-true-false-field" class="type-field">
+              <label>Correct answer
+                <select id="q-correct-boolean">
+                  <option value="true">True</option>
+                  <option value="false">False</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="q-short-answer-field" class="type-field">
+              <label>Correct answer <input type="text" id="q-correct-text" /></label>
+              <label><input type="checkbox" id="q-case-sensitive" /> Case sensitive</label>
+            </div>
+
+            <p id="question-form-error" class="error"></p>
+            <div class="dialog-actions">
+              <button type="button" id="question-cancel-btn">Cancel</button>
+              <button type="submit">Save</button>
+            </div>
+          </form>
+        </dialog>
+
+        <dialog id="question-bank-dialog">
+          <form id="question-bank-form">
+            <h3 id="question-bank-form-title">New Question Bank</h3>
+            <label>Name <input type="text" id="question-bank-name" maxlength="100" required /></label>
+            <p id="question-bank-form-error" class="error"></p>
+            <div class="dialog-actions">
+              <button type="button" id="question-bank-cancel-btn">Cancel</button>
+              <button type="submit">Save</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+
+      <section id="submissions-tab" class="tab-panel" hidden>
+        <table>
+          <thead>
+            <tr><th>Submitted At</th><th>Score</th></tr>
+          </thead>
+          <tbody id="submissions-table-body"></tbody>
+        </table>
+      </section>
+
+      <section id="users-tab" class="tab-panel" hidden>
+        <button id="new-user-btn" type="button">+ New User</button>
+        <table>
+          <thead>
+            <tr><th>Email</th><th>Role</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="users-table-body"></tbody>
+        </table>
+
+        <dialog id="user-dialog">
+          <form id="user-form">
+            <h3>New User</h3>
+            <label>Email <input type="email" id="u-email" autocomplete="email" required /></label>
+            <label>Password <input type="password" id="u-password" minlength="8" autocomplete="new-password" required /></label>
+            <label>Role
+              <select id="u-role" required>
+                <option value="admin">Admin</option>
+                <option value="superuser">Superuser</option>
+              </select>
+            </label>
+            <p id="user-form-error" class="error"></p>
+            <div class="dialog-actions">
+              <button type="button" id="user-cancel-btn">Cancel</button>
+              <button type="submit">Create</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+    </section>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>

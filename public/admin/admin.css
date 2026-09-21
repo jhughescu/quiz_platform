@@ -1,0 +1,121 @@
+.admin-container {
+  max-width: 900px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.question-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.question-group {
+  margin-top: 1.5rem;
+}
+
+.question-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.question-group h3 {
+  margin: 0;
+}
+
+.question-group table {
+  margin-top: 0.5rem;
+}
+
+.tab-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #4f46e5;
+  color: #fff;
+  border-color: #4f46e5;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.error li {
+  margin-left: 1rem;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.hint code {
+  background: #f1f1f1;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+form input,
+form select,
+form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.4rem;
+  box-sizing: border-box;
+}
+
+#question-dialog,
+#question-bank-dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 1.5rem;
+  width: min(500px, 90vw);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.type-field {
+  display: none;
+}
+
+.type-field.active {
+  display: block;
+}
