@@ -10,10 +10,10 @@ async function getQuestions(req, res, next) {
 }
 
 async function submitAnswers(req, res, next) {
-  const { answers } = req.body;
+  const { deploymentId, answers } = req.body;
 
   try {
-    res.json(await quizService.scoreSubmission(answers));
+    res.json(await quizService.scoreSubmission(deploymentId, answers));
   } catch (err) {
     next(err);
   }

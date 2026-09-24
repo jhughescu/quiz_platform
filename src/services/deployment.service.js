@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Deployment = require('../models/Deployment');
 const QuestionBank = require('../models/QuestionBank');
 const questionRepository = require('../repositories/question.repository');
+const deploymentRepository = require('../repositories/deployment.repository');
 
 async function createDeployment({
   name,
@@ -119,10 +120,30 @@ async function getActiveDeployment(id) {
   return deployment;
 }
 
+async function deleteDeployment(id, user) {
+  const deployment = await deploymentRepository.findById(id);
+
+  if (!deployment) {
+    return null;
+  }
+
+  if (
+    user.role !== 'superuser' &&
+    deployment.createdBy.toString() !== user.sub
+  ) {
+    throw new Error('You do not have permission to delete this deployment');
+  }
+
+  await deploymentRepository.deleteById(id);
+
+  return deployment;
+}
+
 module.exports = {
   createDeployment,
   createQuestionSnapshot,
   listDeployments,
   getDeployment,
-  getActiveDeployment
+  getActiveDeployment,
+  deleteDeployment
 };

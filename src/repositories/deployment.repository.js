@@ -23,9 +23,14 @@ function updateById(id, data) {
   );
 }
 
+function deleteById(id) {
+  return Deployment.findByIdAndDelete(id);
+}
+
 module.exports = {
   findAll,
   findById,
   create,
-  updateById
+  updateById,
+  deleteById
 };

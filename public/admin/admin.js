@@ -108,9 +108,18 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     document
       .querySelectorAll(".tab-btn")
       .forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach((p) => (p.hidden = true));
+
+    document
+      .querySelectorAll(".tab-panel")
+      .forEach((p) => (p.hidden = true));
+
     btn.classList.add("active");
+
     document.getElementById(`${btn.dataset.tab}-tab`).hidden = false;
+
+    if (btn.dataset.tab === 'deployments') {
+      loadDeployments();
+    }
   });
 });
 
@@ -171,6 +180,20 @@ async function loadQuestions() {
 function renderQuestionBankOptions() {
   qQuestionBank.innerHTML =
     '<option value="">Unbanked</option>' +
+    questionBanks
+      .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
+      .join("");
+}
+
+function renderDeploymentQuestionBanks() {
+  const select = document.getElementById('deployment-question-bank');
+
+  if (!select) {
+    return;
+  }
+
+  select.innerHTML =
+    '<option value="">Select a question bank</option>' +
     questionBanks
       .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
       .join("");
@@ -559,6 +582,98 @@ async function deleteQuestionBank(id) {
   await apiFetch(`/api/admin/question-banks/${id}`, { method: "DELETE" });
   loadQuestions();
 }
+
+// --- Deployments ---
+async function loadDeployments() {
+  const container = document.getElementById('deployments-container');
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = '<p>Loading deployments...</p>';
+
+  try {
+    const response = await apiFetch('/api/admin/deployments');
+
+const deployments = await response.json();
+
+console.log('Deployments API response:', deployments);
+
+    if (!deployments.length) {
+      container.innerHTML = '<p>No deployments found.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+
+    deployments.forEach((deployment) => {
+      const item = document.createElement('div');
+
+      item.className = 'deployment-item';
+
+      item.innerHTML = `
+        <h3>${deployment.name}</h3>
+        <p>Status: ${deployment.status}</p>
+        <p>Created: ${new Date(deployment.createdAt).toLocaleString()}</p>
+      `;
+
+      container.appendChild(item);
+    });
+  } catch (err) {
+    console.error('Failed to load deployments:', err);
+
+    container.innerHTML = `
+      <p class="error">
+        Failed to load deployments.
+      </p>
+    `;
+  }
+}
+document.getElementById('new-deployment-btn').addEventListener('click', () => {
+  renderDeploymentQuestionBanks();
+  document.getElementById('deployment-dialog').showModal();
+});
+document.getElementById('deployment-cancel-btn').addEventListener('click', () => {
+  document.getElementById('deployment-dialog').close();
+});
+document.getElementById('deployment-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const name = document.getElementById('deployment-name').value.trim();
+  const questionBankId = document.getElementById('deployment-question-bank').value;
+  const errorElement = document.getElementById('deployment-form-error');
+
+  errorElement.textContent = '';
+
+  try {
+    const response = await apiFetch('/api/admin/deployments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name,
+        questionBankId
+      })
+    });
+
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || 'Failed to create deployment');
+    }
+
+    document.getElementById('deployment-dialog').close();
+    document.getElementById('deployment-form').reset();
+
+    loadDeployments();
+
+  } catch (err) {
+    console.error('Failed to create deployment:', err);
+
+    errorElement.textContent = err.message;
+  }
+});
 
 // --- Submissions ---
 const submissionsTableBody = document.getElementById("submissions-table-body");

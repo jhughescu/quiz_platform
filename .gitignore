@@ -45,6 +45,7 @@ tmp/
 temp/
 *.tmp
 _temp_output/
+dev/powershell_commands/
 
 # Local database and generated data
 data/*.db

@@ -9,7 +9,19 @@ const answerValue = Joi.alternatives().try(
 );
 
 const submitAnswersSchema = Joi.object({
-  answers: Joi.object().pattern(Joi.string(), answerValue).min(1).required()
+    deploymentId: Joi.string().required(),
+
+    answers: Joi.object()
+        .pattern(
+            Joi.string(),
+            Joi.alternatives().try(
+                Joi.string().trim().allow(''),
+                Joi.boolean(),
+                Joi.array().items(Joi.string().trim().min(1)).min(1)
+            )
+        )
+        .min(1)
+        .required()
 });
 
 module.exports = { submitAnswersSchema };

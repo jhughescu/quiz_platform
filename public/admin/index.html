@@ -30,6 +30,7 @@
       <nav class="tabs">
         <button type="button" class="tab-btn active" data-tab="questions">Questions</button>
         <button type="button" class="tab-btn" data-tab="submissions">Submissions</button>
+        <button type="button" class="tab-btn" data-tab="deployments">Deployments</button>
         <button type="button" class="tab-btn" data-tab="users" id="users-tab-btn" hidden>Users</button>
       </nav>
 
@@ -121,6 +122,41 @@
           </form>
         </dialog>
       </section>
+
+      <section id="deployments-tab" class="tab-panel" hidden>
+  <div class="deployment-actions">
+    <button id="new-deployment-btn" type="button">
+      + New Deployment
+    </button>
+  </div>
+
+  <div id="deployments-container">
+    <p>Loading deployments...</p>
+  </div>
+
+  <dialog id="deployment-dialog">
+    <form id="deployment-form">
+      <h3>New Deployment</h3>
+
+      <label>
+        Name
+        <input type="text" id="deployment-name" required />
+      </label>
+
+      <label>
+        Question bank
+        <select id="deployment-question-bank" required></select>
+      </label>
+
+      <p id="deployment-form-error" class="error"></p>
+
+      <div class="dialog-actions">
+        <button type="button" id="deployment-cancel-btn">Cancel</button>
+        <button type="submit">Create</button>
+      </div>
+    </form>
+  </dialog>
+</section>
 
       <section id="submissions-tab" class="tab-panel" hidden>
         <table>

@@ -5,7 +5,7 @@ const submissionSchema = new mongoose.Schema({
   total: { type: Number, required: true },
   results: [
     {
-      questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
+      questionId: { type: String, required: true },
       correct: { type: Boolean, required: true }
     }
   ],

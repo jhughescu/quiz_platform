@@ -55,21 +55,36 @@ function sanitizeDeploymentQuestion(q) {
 function isCorrect(q, submitted) {
   switch (q.type) {
     case QUESTION_TYPES.MULTIPLE_CHOICE:
-      return submitted === q.correctIndex;
+      return submitted === q.correctOptionId;
 
     case QUESTION_TYPES.TRUE_FALSE:
-      return submitted === q.correctAnswer;
+      return submitted === String(q.correctAnswer);
 
     case QUESTION_TYPES.MULTI_SELECT: {
-      if (!Array.isArray(submitted)) return false;
+      if (!Array.isArray(submitted)) {
+        return false;
+      }
+
       const given = [...submitted].sort();
-      const expected = [...q.correctIndexes].sort();
-      return given.length === expected.length && given.every((v, i) => v === expected[i]);
+      const expected = [...q.correctOptionIds].sort();
+
+      return (
+        given.length === expected.length &&
+        given.every((value, index) => value === expected[index])
+      );
     }
 
     case QUESTION_TYPES.SHORT_ANSWER: {
-      if (typeof submitted !== 'string') return false;
-      const normalize = (s) => (q.caseSensitive ? s.trim() : s.trim().toLowerCase());
+      if (typeof submitted !== 'string') {
+        return false;
+      }
+
+      const normalize = (value) => {
+        return q.caseSensitive
+          ? value.trim()
+          : value.trim().toLowerCase();
+      };
+
       return normalize(submitted) === normalize(q.correctAnswer);
     }
 
@@ -86,18 +101,39 @@ async function getQuestions() {
   return questions.map(sanitizeQuestion);
 }
 
-async function scoreSubmission(answers) {
-  const questions = await questionRepository.findAll();
-
-  let score = 0;
-  const results = questions.map((q) => {
-    const submitted = answers[q.id];
-    const correct = isCorrect(q, submitted);
-    if (correct) score += 1;
-    return { questionId: q.id, correct };
+async function scoreSubmission(deploymentId, answers) {
+  const deployment = await Deployment.findOne({
+    _id: deploymentId,
+    status: 'active'
   });
 
-  const submission = { score, total: questions.length, results };
+  if (!deployment) {
+    throw new Error('Deployment not found');
+  }
+
+  let score = 0;
+
+  const results = deployment.questions.map((q, index) => {
+  const submitted = answers[q.id];
+  const correct = isCorrect(q, submitted);
+
+
+  if (correct) {
+    score += 1;
+  }
+
+  return {
+    questionId: q.id,
+    correct
+  };
+});
+
+  const submission = {
+    score,
+    total: deployment.questions.length,
+    results
+  };
+
   await submissionRepository.create(submission);
 
   return submission;

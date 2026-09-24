@@ -54,7 +54,22 @@ const deploymentQuestionSchema = new mongoose.Schema(
   },
   { _id: false }
 );
+const deploymentTemplateSchema = new mongoose.Schema(
+  {
+    id: {
+      type: String,
+      required: true,
+      default: 'default'
+    },
 
+    version: {
+      type: String,
+      required: true,
+      default: '1.0'
+    }
+  },
+  { _id: false }
+);
 const deploymentSchema = new mongoose.Schema(
   {
     name: {
@@ -78,12 +93,14 @@ const deploymentSchema = new mongoose.Schema(
     template: {
       id: {
         type: String,
-        required: true
+        required: true,
+        default: 'default'
       },
 
       version: {
         type: String,
-        required: true
+        required: true,
+        default: '1.0'
       }
     },
 
