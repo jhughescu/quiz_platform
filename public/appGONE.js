@@ -5,6 +5,7 @@ const resultEl = document.getElementById('result');
 let questions = [];
 
 async function loadQuestions() {
+  console.log
   const res = await fetch('/api/questions');
   questions = await res.json();
   renderQuestions();
@@ -37,6 +38,7 @@ function renderQuestionBody(q) {
 }
 
 function renderQuestions() {
+  console.log('Rendering questions:', questions);
   quizEl.innerHTML = questions
     .map(
       (q) => `
@@ -91,4 +93,5 @@ async function submitAnswers() {
 }
 
 submitBtn.addEventListener('click', submitAnswers);
+console.log('Loading questions...');
 loadQuestions();

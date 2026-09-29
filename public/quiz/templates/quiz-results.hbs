@@ -1,0 +1,29 @@
+<section class="quiz-results">
+  <h2>Results</h2>
+
+  <p>
+    Score: {{score}} / {{total}}
+  </p>
+
+  <h3>Question Feedback</h3>
+
+  <ul>
+    {{#each results}}
+      <li>
+        <div class="result-question">
+          {{{questionText}}}
+        </div>
+
+        <br>
+
+        <span>
+          {{#if correct}}
+            Correct
+          {{else}}
+            Incorrect
+          {{/if}}
+        </span>
+      </li>
+    {{/each}}
+  </ul>
+</section>

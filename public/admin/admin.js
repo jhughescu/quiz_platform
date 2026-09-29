@@ -54,7 +54,6 @@ function showDashboard() {
     : "";
   document.getElementById("users-tab-btn").hidden =
     !user || user.role !== "superuser";
-
   // Reset to the Questions tab so a previously active tab from a different session doesn't leak through
   document
     .querySelectorAll(".tab-btn")
@@ -64,7 +63,6 @@ function showDashboard() {
     .classList.add("active");
   document.querySelectorAll(".tab-panel").forEach((p) => (p.hidden = true));
   document.getElementById("questions-tab").hidden = false;
-
   loadQuestions();
   loadSubmissions();
   if (user && user.role === "superuser") loadUsers();
@@ -108,16 +106,10 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     document
       .querySelectorAll(".tab-btn")
       .forEach((b) => b.classList.remove("active"));
-
-    document
-      .querySelectorAll(".tab-panel")
-      .forEach((p) => (p.hidden = true));
-
+    document.querySelectorAll(".tab-panel").forEach((p) => (p.hidden = true));
     btn.classList.add("active");
-
     document.getElementById(`${btn.dataset.tab}-tab`).hidden = false;
-
-    if (btn.dataset.tab === 'deployments') {
+    if (btn.dataset.tab === "deployments") {
       loadDeployments();
     }
   });
@@ -174,7 +166,7 @@ async function loadQuestions() {
   const questions = await questionsRes.json();
   questionBanks = await questionBanksRes.json();
   renderQuestionBankOptions();
-  renderQuestionGroups(questions);
+  await renderQuestionGroups(questions);
 }
 
 function renderQuestionBankOptions() {
@@ -186,12 +178,10 @@ function renderQuestionBankOptions() {
 }
 
 function renderDeploymentQuestionBanks() {
-  const select = document.getElementById('deployment-question-bank');
-
+  const select = document.getElementById("deployment-question-bank");
   if (!select) {
     return;
   }
-
   select.innerHTML =
     '<option value="">Select a question bank</option>' +
     questionBanks
@@ -204,64 +194,54 @@ function isSuperuser() {
   return user?.role === "superuser";
 }
 
-function renderQuestionsTable(questions) {
-  const showOwner = isSuperuser();
-  return `
-    <table>
-      <thead><tr><th>Type</th><th>Question</th>${showOwner ? "<th>Owner</th>" : ""}<th>Actions</th></tr></thead>
-      <tbody>
-  ${questions
-    .map(
-      (q) => `
-    <tr data-id="${q._id}">
-      <td>${q.type}</td>
-      <td>${q.question}</td>
-      ${showOwner ? `<td>${q.createdBy?.email || "Unknown"}</td>` : ""}
-      <td>
-        <button type="button" class="edit-btn">Edit</button>
-        <button type="button" class="delete-btn">Delete</button>
-      </td>
-    </tr>`,
-    )
-    .join("")}
-      </tbody>
-    </table>`;
-}
-
-function renderQuestionGroups(questions) {
+async function renderQuestionGroups(questions) {
   const unbankedQuestions = questions.filter(
     (question) => !question.questionBank,
   );
+
   const groups = [
-    { name: "Unbanked Questions", questions: unbankedQuestions, bank: null },
+    {
+      name: "Unbanked Questions",
+      questions: unbankedQuestions,
+      bank: null
+    },
     ...questionBanks.map((bank) => ({
       name: bank.name,
       questions: questions.filter(
         (question) => question.questionBank === bank._id,
       ),
-      bank,
-    })),
+      bank
+    }))
   ];
 
-  questionGroups.innerHTML = groups
-    .map(
-      ({ name, questions: groupQuestions, bank }) => `
-      <section class="question-group">
-        <div class="question-group-header">
-          <h3>${name}${bank && isSuperuser() ? ` (${bank.createdBy?.email || "Unknown"})` : ""}</h3>
-          ${bank ? `<div><button type="button" class="export-bank-btn" data-id="${bank._id}">Export</button> <button type="button" class="edit-bank-btn" data-id="${bank._id}">Edit</button> <button type="button" class="delete-bank-btn" data-id="${bank._id}">Delete</button></div>` : ""}
-        </div>
-        ${renderQuestionsTable(groupQuestions)}
-      </section>`,
-    )
-    .join("");
+  const showOwner = isSuperuser();
+
+  const groupData = groups.map((group) => ({
+    ...group,
+    showOwner,
+    ownerEmail: group.bank?.createdBy?.email || "Unknown",
+    questions: group.questions.map((question) => ({
+      ...question,
+      ownerEmail: question.createdBy?.email || "Unknown"
+    }))
+  }));
+
+  questionGroups.innerHTML = await renderTemplate(
+    "/admin/templates/question-groups.hbs",
+    {
+      groups: groupData,
+      showOwner
+    }
+  );
 
   questionGroups.querySelectorAll("tr[data-id]").forEach((row) => {
     const id = row.dataset.id;
     const question = questions.find((q) => q._id === id);
+
     row
       .querySelector(".edit-btn")
       .addEventListener("click", () => openEditDialog(question));
+
     row
       .querySelector(".delete-btn")
       .addEventListener("click", () => deleteQuestion(id));
@@ -272,6 +252,7 @@ function renderQuestionGroups(questions) {
       exportQuestionBank(button.dataset.id),
     );
   });
+
   questionGroups.querySelectorAll(".edit-bank-btn").forEach((button) => {
     button.addEventListener("click", () =>
       openQuestionBankDialog(
@@ -279,6 +260,7 @@ function renderQuestionGroups(questions) {
       ),
     );
   });
+
   questionGroups.querySelectorAll(".delete-bank-btn").forEach((button) => {
     button.addEventListener("click", () =>
       deleteQuestionBank(button.dataset.id),
@@ -293,7 +275,7 @@ async function exportAllQuestions() {
   }
   const blob = await res.blob();
   let filename = `all-questions.txt`;
-  
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -316,15 +298,15 @@ async function exportQuestionBank(bankId) {
   const contentDisposition = res.headers.get("Content-Disposition");
   let filename = `question-bank-${bankId}.txt`;
   if (contentDisposition) {
-  const match = contentDisposition.match(/filename="([^"]+)"/);
-  if (match) {
-    const name = match[1].replace(/\.txt$/i, '');
-    filename = `question_bank_${name
-      .replace(/[^a-zA-Z0-9\s]/g, '')
-      .replace(/\s+/g, '_')
-      .toLowerCase()}.txt`;
+    const match = contentDisposition.match(/filename="([^"]+)"/);
+    if (match) {
+      const name = match[1].replace(/\.txt$/i, "");
+      filename = `question_bank_${name
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .replace(/\s+/g, "_")
+        .toLowerCase()}.txt`;
+    }
   }
-}
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -515,9 +497,6 @@ importForm.addEventListener("submit", async (e) => {
   }
 });
 
-
-
-
 // --- Question banks ---
 const questionBankDialog = document.getElementById("question-bank-dialog");
 const questionBankForm = document.getElementById("question-bank-form");
@@ -586,94 +565,121 @@ async function deleteQuestionBank(id) {
 // --- Deployments ---
 async function loadDeployments() {
   const container = document.getElementById('deployments-container');
-
   if (!container) {
     return;
   }
-
-  container.innerHTML = '<p>Loading deployments...</p>';
-
+  container.textContent = 'Loading deployments...';
   try {
     const response = await apiFetch('/api/admin/deployments');
-
-const deployments = await response.json();
-
-console.log('Deployments API response:', deployments);
-
+    const deployments = await response.json();
+    console.log('Deployments API response:', deployments);
     if (!deployments.length) {
-      container.innerHTML = '<p>No deployments found.</p>';
+      container.textContent = 'No deployments found.';
       return;
     }
-
     container.innerHTML = '';
-
-    deployments.forEach((deployment) => {
-      const item = document.createElement('div');
-
-      item.className = 'deployment-item';
-
-      item.innerHTML = `
-        <h3>${deployment.name}</h3>
-        <p>Status: ${deployment.status}</p>
-        <p>Created: ${new Date(deployment.createdAt).toLocaleString()}</p>
-      `;
-
+    for (const deployment of deployments) {
+      const html = await renderTemplate(
+        '/admin/templates/deployment-item.hbs',
+        {
+          ...deployment,
+          created: new Date(deployment.createdAt).toLocaleString()
+        }
+      );
+      const item = document.createRange().createContextualFragment(html);
+      item
+        .querySelector('.deployment-view-btn')
+        .addEventListener('click', () => {
+          viewDeployment(deployment._id);
+        });
       container.appendChild(item);
-    });
+    }
   } catch (err) {
     console.error('Failed to load deployments:', err);
-
-    container.innerHTML = `
-      <p class="error">
-        Failed to load deployments.
-      </p>
-    `;
+    container.textContent = 'Failed to load deployments.';
   }
 }
-document.getElementById('new-deployment-btn').addEventListener('click', () => {
+document.getElementById("new-deployment-btn").addEventListener("click", () => {
   renderDeploymentQuestionBanks();
-  document.getElementById('deployment-dialog').showModal();
+  document.getElementById("deployment-dialog").showModal();
 });
-document.getElementById('deployment-cancel-btn').addEventListener('click', () => {
-  document.getElementById('deployment-dialog').close();
-});
-document.getElementById('deployment-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
+document
+  .getElementById("deployment-cancel-btn")
+  .addEventListener("click", () => {
+    document.getElementById("deployment-dialog").close();
+  });
+document
+  .getElementById("deployment-form")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  const name = document.getElementById('deployment-name').value.trim();
-  const questionBankId = document.getElementById('deployment-question-bank').value;
-  const errorElement = document.getElementById('deployment-form-error');
+    const name = document.getElementById("deployment-name").value.trim();
+    const questionBankId = document.getElementById(
+      "deployment-question-bank",
+    ).value;
+    const errorElement = document.getElementById("deployment-form-error");
 
-  errorElement.textContent = '';
+    errorElement.textContent = "";
 
+    try {
+      const response = await apiFetch("/api/admin/deployments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          questionBankId,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || "Failed to create deployment");
+      }
+
+      document.getElementById("deployment-dialog").close();
+      document.getElementById("deployment-form").reset();
+
+      loadDeployments();
+    } catch (err) {
+      console.error("Failed to create deployment:", err);
+
+      errorElement.textContent = err.message;
+    }
+  });
+document
+  .getElementById("deployment-details-close-btn")
+  .addEventListener("click", () => {
+    document.getElementById("deployment-details-dialog").close();
+  });
+async function viewDeployment(deploymentId) {
+  const dialog = document.getElementById("deployment-details-dialog");
+  const nameElement = document.getElementById("deployment-details-name");
+  const contentElement = document.getElementById("deployment-details-content");
+  nameElement.textContent = "";
+  dialog.showModal();
   try {
-    const response = await apiFetch('/api/admin/deployments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name,
-        questionBankId
-      })
-    });
-
+    contentElement.innerHTML = await renderTemplate("/admin/templates/deployment-loading.hbs");
+    const response = await apiFetch(`/api/admin/deployments/${deploymentId}`);
     if (!response.ok) {
       const result = await response.json();
-      throw new Error(result.error || 'Failed to create deployment');
+      throw new Error(result.error || "Failed to load deployment");
     }
-
-    document.getElementById('deployment-dialog').close();
-    document.getElementById('deployment-form').reset();
-
-    loadDeployments();
-
+    const deployment = await response.json();
+    nameElement.textContent = deployment.name;
+    contentElement.innerHTML = await renderTemplate(
+      "/admin/templates/deployment-details.hbs",
+      {
+        ...deployment,
+        created: new Date(deployment.createdAt).toLocaleString()
+      }
+    );
   } catch (err) {
-    console.error('Failed to create deployment:', err);
-
-    errorElement.textContent = err.message;
+    console.error("Failed to load deployment details:", err);
+    contentElement.innerHTML = await renderTemplate("/admin/templates/deployment-error.hbs");
   }
-});
+}
 
 // --- Submissions ---
 const submissionsTableBody = document.getElementById("submissions-table-body");
@@ -690,7 +696,7 @@ async function loadSubmissions() {
 }
 
 // --- Users (superuser only) ---
-const usersTableBody = document.getElementById("users-table-body");
+const usersTableContainer = document.getElementById("users-table-container");
 const userDialog = document.getElementById("user-dialog");
 const userForm = document.getElementById("user-form");
 const userFormError = document.getElementById("user-form-error");
@@ -708,25 +714,34 @@ document.getElementById("user-cancel-btn").addEventListener("click", () => {
 async function loadUsers() {
   const res = await apiFetch("/api/admin/users");
   const users = await res.json();
+
   const currentUser = JSON.parse(
     localStorage.getItem("quizAdminUser") || "null",
   );
 
-  usersTableBody.innerHTML = users
-    .map(
-      (u) => `
-    <tr data-id="${u._id}">
-      <td>${u.email}</td>
-      <td>${u.role}</td>
-      <td>${u._id === currentUser?.id ? "" : '<button type="button" class="delete-user-btn">Delete</button>'}</td>
-    </tr>`,
-    )
-    .join("");
+  const userData = users.map((user) => ({
+    ...user,
+    isCurrentUser: user._id === currentUser?.id
+  }));
 
-  usersTableBody.querySelectorAll(".delete-user-btn").forEach((btn) => {
-    const id = btn.closest("tr").dataset.id;
-    btn.addEventListener("click", () => deleteUser(id));
-  });
+  const html = await renderTemplate(
+    "/admin/templates/users-table.hbs",
+    {
+      users: userData
+    }
+  );
+
+  usersTableContainer.innerHTML = html;
+
+  usersTableContainer
+    .querySelectorAll(".delete-user-btn")
+    .forEach((button) => {
+      const id = button.closest("tr").dataset.id;
+
+      button.addEventListener("click", () => {
+        deleteUser(id);
+      });
+    });
 }
 
 userForm.addEventListener("submit", async (e) => {
@@ -773,5 +788,3 @@ if (getToken()) {
 } else {
   showLogin();
 }
-
-

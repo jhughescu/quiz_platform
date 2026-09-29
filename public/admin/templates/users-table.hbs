@@ -1,0 +1,25 @@
+<table>
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {{#each users}}
+      <tr data-id="{{_id}}">
+        <td>{{email}}</td>
+        <td>{{role}}</td>
+        <td>
+          {{#unless isCurrentUser}}
+            <button type="button" class="delete-user-btn">
+              Delete
+            </button>
+          {{/unless}}
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

@@ -1,0 +1,30 @@
+<article class="quiz-question">
+  <h2>{{addOne index}}. {{{question}}}</h2>
+
+  {{#if isShortAnswer}}
+
+    <input
+      type="text"
+      name="{{id}}"
+    >
+
+  {{else}}
+
+    <div class="quiz-options">
+      {{#each options}}
+
+        <label>
+          <input
+            type="{{../inputType}}"
+            name="{{../id}}"
+            value="{{id}}"
+          >
+
+          {{text}}
+        </label>
+
+      {{/each}}
+    </div>
+
+  {{/if}}
+</article>

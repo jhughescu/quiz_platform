@@ -1,0 +1,45 @@
+<div class="deployment-details">
+
+  <p><strong>Status:</strong> {{status}}</p>
+
+  <p>
+    <strong>Created:</strong>
+    {{created}}
+  </p>
+
+  <p>
+    <strong>Template:</strong>
+    {{template.id}}
+    ({{template.version}})
+  </p>
+
+  <p>
+    <strong>Questions:</strong>
+    {{questions.length}}
+  </p>
+
+  <hr />
+
+  <h4>Questions</h4>
+
+  <div class="deployment-questions">
+
+    {{#each questions}}
+
+      <article class="deployment-question">
+
+        <h5>
+          Question
+          {{addOne @index}}
+          ({{type}})
+        </h5>
+
+        <p>{{{question}}}</p>
+
+      </article>
+
+    {{/each}}
+
+  </div>
+
+</div>
