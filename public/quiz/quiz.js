@@ -19,7 +19,7 @@ function shuffle(array) {
 async function renderQuestion(question, index, randomiseOptions) {
   let inputType = "radio";
   let isShortAnswer = false;
-  if (question.hasOwnProperty('options') && randomiseOptions) {
+  if (question.hasOwnProperty("options") && randomiseOptions) {
     question.options = shuffle(question.options);
   }
   switch (question.type) {
@@ -56,11 +56,20 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
+    console.log("Loaded quiz:", quiz);
     quizTitle.textContent = quiz.name;
-    quizQuestions = quiz.questions;
-    for (let index = 0; index < quiz.questions.length; index++) {
-      const question = quiz.questions[index];
-      const html = await renderQuestion(question, index, quiz.randomiseOptions);
+    let questions = quiz.questions;
+    if (quiz.randomiseQuestions) {
+      questions = shuffle([...questions]);
+    }
+    quizQuestions = questions;
+    for (let index = 0; index < questions.length; index++) {
+      const question = questions[index];
+      const html = await renderQuestion(
+        question,
+        index,
+        quiz.randomiseOptions
+      );
       questionsContainer.insertAdjacentHTML("beforeend", html);
     }
   } catch (err) {
@@ -112,7 +121,7 @@ function collectAnswers() {
 
 quizForm.addEventListener("submit", async (event) => {
   event.preventDefault();
- 
+
   const answers = collectAnswers();
   const deploymentId = getDeploymentId();
   try {
@@ -146,7 +155,5 @@ quizForm.addEventListener("submit", async (event) => {
     console.error("Submission failed:", err);
   }
 });
-
-
 
 loadQuiz();
