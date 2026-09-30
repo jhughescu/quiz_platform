@@ -43,8 +43,7 @@ async function renderQuestion(question, index, randomiseOptions) {
     inputType,
     isShortAnswer,
   });
-}
-async function loadQuiz() {
+}async function loadQuiz() {
   const deploymentId = getDeploymentId();
   if (!deploymentId) {
     quizTitle.textContent = "Quiz not found";
@@ -56,15 +55,12 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
-    console.log("Loaded quiz:", quiz);
     quizTitle.textContent = quiz.name;
-    let questions = quiz.questions;
-    if (quiz.randomiseQuestions) {
-      questions = shuffle([...questions]);
-    }
-    quizQuestions = questions;
-    for (let index = 0; index < questions.length; index++) {
-      const question = questions[index];
+    quizQuestions = quiz.randomiseQuestions
+      ? shuffle([...quiz.questions])
+      : quiz.questions;
+    for (let index = 0; index < quizQuestions.length; index++) {
+      const question = quizQuestions[index];
       const html = await renderQuestion(
         question,
         index,
