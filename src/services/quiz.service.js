@@ -153,6 +153,8 @@ async function getActiveDeployment(id) {
     id: deployment._id,
     name: deployment.name,
     template: deployment.template,
+    randomiseOptions: deployment.randomiseOptions,
+    randomiseQuestions: deployment.randomiseQuestions,
     questions: deployment.questions.map(sanitizeDeploymentQuestion)
   };
 }

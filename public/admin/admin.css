@@ -119,3 +119,14 @@ form textarea {
 .type-field.active {
   display: block;
 }
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  width: auto;
+  white-space: nowrap;
+}
+
+#deployment-randomise-options {
+  margin: 0;
+}

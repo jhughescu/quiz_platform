@@ -1,12 +1,14 @@
 const deploymentService = require('../services/deployment.service');
 async function createDeployment(req, res) {
   try {
-    const { name, questionBankId, template } = req.body;
+    const { name, questionBankId, template, randomiseOptions, randomiseQuestions } = req.body;
 
     const deployment = await deploymentService.createDeployment({
       name,
       questionBankId,
       template,
+      randomiseOptions,
+      randomiseQuestions,
       user: req.user
     });
     return res.status(201).json(deployment);

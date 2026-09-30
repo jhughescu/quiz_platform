@@ -16,10 +16,10 @@ function shuffle(array) {
   }
   return array;
 }
-async function renderQuestion(question, index) {
+async function renderQuestion(question, index, randomiseOptions) {
   let inputType = "radio";
   let isShortAnswer = false;
-  if (question.hasOwnProperty('options')) {
+  if (question.hasOwnProperty('options') && randomiseOptions) {
     question.options = shuffle(question.options);
   }
   switch (question.type) {
@@ -60,7 +60,7 @@ async function loadQuiz() {
     quizQuestions = quiz.questions;
     for (let index = 0; index < quiz.questions.length; index++) {
       const question = quiz.questions[index];
-      const html = await renderQuestion(question, index);
+      const html = await renderQuestion(question, index, quiz.randomiseOptions);
       questionsContainer.insertAdjacentHTML("beforeend", html);
     }
   } catch (err) {

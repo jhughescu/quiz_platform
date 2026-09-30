@@ -619,6 +619,13 @@ document
     ).value;
     const errorElement = document.getElementById("deployment-form-error");
 
+    const randomiseOptions = document.getElementById(
+      "deployment-randomise-options",
+    ).checked;
+    const randomiseQuestions = document.getElementById(
+      "deployment-randomise-questions",
+    ).checked;
+
     errorElement.textContent = "";
 
     try {
@@ -630,6 +637,8 @@ document
         body: JSON.stringify({
           name,
           questionBankId,
+          randomiseOptions,
+          randomiseQuestions
         }),
       });
 

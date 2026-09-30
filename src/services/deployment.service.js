@@ -8,6 +8,8 @@ async function createDeployment({
   name,
   questionBankId,
   template,
+  randomiseOptions,
+  randomiseQuestions,
   user
 }) {
   const questionBank = await QuestionBank.findById(questionBankId);
@@ -29,6 +31,8 @@ async function createDeployment({
     createdBy: user.sub,
     sourceQuestionBankId: questionBankId,
     template,
+    randomiseOptions,
+    randomiseQuestions,
     questions: questionSnapshot
   });
 

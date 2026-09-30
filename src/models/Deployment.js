@@ -109,6 +109,10 @@ const deploymentSchema = new mongoose.Schema(
       enum: ['active', 'closed'],
       default: 'active'
     },
+    randomiseOptions: {
+      type: Boolean,
+      default: false
+    },
 
     questions: {
       type: [deploymentQuestionSchema],
