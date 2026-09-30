@@ -20,8 +20,11 @@ async function renderQuestion(question, index, randomiseOptions) {
   let inputType = "radio";
   let isShortAnswer = false;
   if (question.hasOwnProperty("options") && randomiseOptions) {
-    question.options = shuffle(question.options);
-  }
+  question = {
+    ...question,
+    options: shuffle([...question.options])
+  };
+}
   switch (question.type) {
     case "multiple-choice":
     case "true-false":
