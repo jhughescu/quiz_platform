@@ -113,6 +113,10 @@ const deploymentSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    randomiseQuestions: {
+      type: Boolean,
+      default: false
+    },
 
     questions: {
       type: [deploymentQuestionSchema],
