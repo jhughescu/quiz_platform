@@ -561,8 +561,6 @@ async function deleteQuestionBank(id) {
   await apiFetch(`/api/admin/question-banks/${id}`, { method: "DELETE" });
   loadQuestions();
 }
-
-// --- Deployments ---
 async function loadDeployments() {
   const container = document.getElementById('deployments-container');
   if (!container) {
@@ -583,7 +581,8 @@ async function loadDeployments() {
         '/admin/templates/deployment-item.hbs',
         {
           ...deployment,
-          created: new Date(deployment.createdAt).toLocaleString()
+          created: new Date(deployment.createdAt).toLocaleString(),
+          url: `${window.location.origin}/quiz/?id=${deployment._id}`
         }
       );
       const item = document.createRange().createContextualFragment(html);

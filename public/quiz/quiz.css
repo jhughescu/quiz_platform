@@ -28,3 +28,6 @@
     font-size: 1rem;
     cursor: pointer;
 }
+body.review-mode {
+  background-color: lightblue;
+}
