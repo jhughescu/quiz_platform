@@ -203,15 +203,15 @@ async function renderQuestionGroups(questions) {
     {
       name: "Unbanked Questions",
       questions: unbankedQuestions,
-      bank: null
+      bank: null,
     },
     ...questionBanks.map((bank) => ({
       name: bank.name,
       questions: questions.filter(
         (question) => question.questionBank === bank._id,
       ),
-      bank
-    }))
+      bank,
+    })),
   ];
 
   const showOwner = isSuperuser();
@@ -222,16 +222,16 @@ async function renderQuestionGroups(questions) {
     ownerEmail: group.bank?.createdBy?.email || "Unknown",
     questions: group.questions.map((question) => ({
       ...question,
-      ownerEmail: question.createdBy?.email || "Unknown"
-    }))
+      ownerEmail: question.createdBy?.email || "Unknown",
+    })),
   }));
 
   questionGroups.innerHTML = await renderTemplate(
     "/admin/templates/question-groups.hbs",
     {
       groups: groupData,
-      showOwner
-    }
+      showOwner,
+    },
   );
 
   questionGroups.querySelectorAll("tr[data-id]").forEach((row) => {
@@ -562,40 +562,40 @@ async function deleteQuestionBank(id) {
   loadQuestions();
 }
 async function loadDeployments() {
-  const container = document.getElementById('deployments-container');
+  const container = document.getElementById("deployments-container");
   if (!container) {
     return;
   }
-  container.textContent = 'Loading deployments...';
+  container.textContent = "Loading deployments...";
   try {
-    const response = await apiFetch('/api/admin/deployments');
+    const response = await apiFetch("/api/admin/deployments");
     const deployments = await response.json();
-    console.log('Deployments API response:', deployments);
+    console.log("Deployments API response:", deployments);
     if (!deployments.length) {
-      container.textContent = 'No deployments found.';
+      container.textContent = "No deployments found.";
       return;
     }
-    container.innerHTML = '';
+    container.innerHTML = "";
     for (const deployment of deployments) {
       const html = await renderTemplate(
-        '/admin/templates/deployment-item.hbs',
+        "/admin/templates/deployment-item.hbs",
         {
           ...deployment,
           created: new Date(deployment.createdAt).toLocaleString(),
-          url: `${window.location.origin}/quiz/?id=${deployment._id}`
-        }
+          url: `${window.location.origin}/quiz/?id=${deployment._id}`,
+        },
       );
       const item = document.createRange().createContextualFragment(html);
       item
-        .querySelector('.deployment-view-btn')
-        .addEventListener('click', () => {
+        .querySelector(".deployment-view-btn")
+        .addEventListener("click", () => {
           viewDeployment(deployment._id);
         });
       container.appendChild(item);
     }
   } catch (err) {
-    console.error('Failed to load deployments:', err);
-    container.textContent = 'Failed to load deployments.';
+    console.error("Failed to load deployments:", err);
+    container.textContent = "Failed to load deployments.";
   }
 }
 document.getElementById("new-deployment-btn").addEventListener("click", () => {
@@ -616,6 +616,12 @@ document
     const questionBankId = document.getElementById(
       "deployment-question-bank",
     ).value;
+    const templateId = document
+      .getElementById("deployment-template")
+      .value.trim();
+    const templateVersion = document
+      .getElementById("deployment-template-version")
+      .value.trim();
     const errorElement = document.getElementById("deployment-form-error");
 
     const randomiseOptions = document.getElementById(
@@ -636,8 +642,12 @@ document
         body: JSON.stringify({
           name,
           questionBankId,
+          template: {
+            id: templateId,
+            version: templateVersion,
+          },
           randomiseOptions,
-          randomiseQuestions
+          randomiseQuestions,
         }),
       });
 
@@ -668,7 +678,9 @@ async function viewDeployment(deploymentId) {
   nameElement.textContent = "";
   dialog.showModal();
   try {
-    contentElement.innerHTML = await renderTemplate("/admin/templates/deployment-loading.hbs");
+    contentElement.innerHTML = await renderTemplate(
+      "/admin/templates/deployment-loading.hbs",
+    );
     const response = await apiFetch(`/api/admin/deployments/${deploymentId}`);
     if (!response.ok) {
       const result = await response.json();
@@ -680,12 +692,14 @@ async function viewDeployment(deploymentId) {
       "/admin/templates/deployment-details.hbs",
       {
         ...deployment,
-        created: new Date(deployment.createdAt).toLocaleString()
-      }
+        created: new Date(deployment.createdAt).toLocaleString(),
+      },
     );
   } catch (err) {
     console.error("Failed to load deployment details:", err);
-    contentElement.innerHTML = await renderTemplate("/admin/templates/deployment-error.hbs");
+    contentElement.innerHTML = await renderTemplate(
+      "/admin/templates/deployment-error.hbs",
+    );
   }
 }
 
@@ -729,27 +743,22 @@ async function loadUsers() {
 
   const userData = users.map((user) => ({
     ...user,
-    isCurrentUser: user._id === currentUser?.id
+    isCurrentUser: user._id === currentUser?.id,
   }));
 
-  const html = await renderTemplate(
-    "/admin/templates/users-table.hbs",
-    {
-      users: userData
-    }
-  );
+  const html = await renderTemplate("/admin/templates/users-table.hbs", {
+    users: userData,
+  });
 
   usersTableContainer.innerHTML = html;
 
-  usersTableContainer
-    .querySelectorAll(".delete-user-btn")
-    .forEach((button) => {
-      const id = button.closest("tr").dataset.id;
+  usersTableContainer.querySelectorAll(".delete-user-btn").forEach((button) => {
+    const id = button.closest("tr").dataset.id;
 
-      button.addEventListener("click", () => {
-        deleteUser(id);
-      });
+    button.addEventListener("click", () => {
+      deleteUser(id);
     });
+  });
 }
 
 userForm.addEventListener("submit", async (e) => {

@@ -5,6 +5,7 @@ const resultsContainer = document.getElementById("results");
 
 let quizQuestions = [];
 let reviewToken = sessionStorage.getItem("quizReviewToken");
+let quizTemplateId = "default";
 
 function getDeploymentId() {
   const params = new URLSearchParams(window.location.search);
@@ -48,7 +49,23 @@ function shuffle(array) {
   return array;
 }
 
-async function renderQuestion(question, index, randomiseOptions, review) {
+async function getTemplatePath(templateId, templateName) {
+  const defaultPath = `/quiz/templates/${templateName}.hbs`;
+  if (!templateId || templateId === "default") {
+    return defaultPath;
+  }
+  const overridePath = `/quiz/templates/${templateId}/${templateName}.hbs`;
+  const response = await fetch(overridePath, { method: "HEAD" });
+  return response.ok ? overridePath : defaultPath;
+}
+
+async function renderQuestion(
+  question,
+  index,
+  randomiseOptions,
+  review,
+  templateId,
+) {
   if (question.options && randomiseOptions) {
     question = {
       ...question,
@@ -65,7 +82,7 @@ async function renderQuestion(question, index, randomiseOptions, review) {
       console.warn("Unknown question type:", question.type);
       return "";
   }
-  return renderTemplate("/quiz/templates/quiz-question.hbs", {
+  return renderTemplate(await getTemplatePath(templateId, "quiz-question"), {
     ...question,
     index,
     review,
@@ -114,16 +131,23 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
+    quizTemplateId = quiz.template?.id || "default";
     quizTitle.textContent = quiz.name;
     document.body.classList.toggle("review-mode", Boolean(reviewToken));
     quizQuestions = quiz.randomiseQuestions
       ? shuffle([...quiz.questions])
       : quiz.questions;
-      
+
     questionsContainer.innerHTML = "";
     for (let index = 0; index < quizQuestions.length; index++) {
       const question = quizQuestions[index];
-      const html = await renderQuestion(question, index, quiz.randomiseOptions, Boolean(reviewToken));
+      const html = await renderQuestion(
+        question,
+        index,
+        quiz.randomiseOptions,
+        Boolean(reviewToken),
+        quiz.template?.id,
+      );
       questionsContainer.insertAdjacentHTML("beforeend", html);
     }
   } catch (err) {
@@ -191,7 +215,7 @@ quizForm.addEventListener("submit", async (event) => {
     const result = await response.json();
     const templateData = prepareQuizResults(result);
     resultsContainer.innerHTML = await renderTemplate(
-      "/quiz/templates/quiz-results.hbs",
+      await getTemplatePath(quizTemplateId, "quiz-results"),
       templateData,
     );
   } catch (err) {
