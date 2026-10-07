@@ -1,0 +1,8 @@
+<div class="quiz-progress">
+  Question {{addOne currentIndex}} of {{totalQuestions}}
+</div>
+<div class="quiz-navigation">
+  <button type="button" class="quiz-previous">Previous</button>
+  <button type="button" class="quiz-next">Next</button>
+  <button type="submit" class="quiz-submit" {{#if submitted}}disabled{{/if}}>Submit</button>
+</div>

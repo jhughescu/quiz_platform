@@ -1,7 +1,11 @@
 const express = require('express');
 const quizController = require('../controllers/quiz.controller');
 const { validateBody } = require('../middleware/validate');
-const { submitAnswersSchema } = require('../validators/quiz.validators');
+const {
+  submitAnswersSchema,
+  createSubmissionSchema,
+  updateSubmissionSchema
+} = require('../validators/quiz.validators');
 const { questionsLimiter, submitLimiter } = require('../middleware/rateLimiters');
 const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
@@ -11,6 +15,18 @@ const router = express.Router();
 
 router.get('/questions', questionsLimiter, quizController.getQuestions);
 router.get('/quiz/:id', quizController.getQuiz);
+router.post(
+  '/submissions',
+  submitLimiter,
+  validateBody(createSubmissionSchema),
+  quizController.createSubmission
+);
+router.patch(
+  '/submissions/:id',
+  submitLimiter,
+  validateBody(updateSubmissionSchema),
+  quizController.updateSubmission
+);
 router.get(
   '/quiz/:id/review',
   authenticate,
@@ -18,5 +34,6 @@ router.get(
   quizController.getQuizReview
 );
 router.post('/submit', submitLimiter, validateBody(submitAnswersSchema), quizController.submitAnswers);
+
 
 module.exports = router;

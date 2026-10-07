@@ -1,7 +1,7 @@
 <article class="quiz-question{{#if review}} review-mode{{/if}}">
   <h2>{{addOne index}}. {{{question}}}</h2>
   {{#if (equals type "short-answer")}}
-  <input type="text" name="{{id}}" {{#if review}}value="{{correctAnswer}}" {{/if}}>
+  <input type="text" name="{{id}}" {{#if review}}value="{{correctAnswer}}" {{/if}} {{#if submitted}}disabled{{/if}}>
   {{else}}
   <div class="quiz-options">
     {{#each options}}
@@ -10,7 +10,7 @@
         {{#if ../review}} {{#if (equals ../type "multi-select" )}} 
         {{#if (includes ../correctOptionIds id)}}checked{{/if}}
         {{else}} {{#if (equals id ../correctOptionId)}}checked{{/if}} {{/if}} {{#if (equals
-        ../type "true-false" )}} {{#if (equals id ../correctAnswer)}}checked{{/if}} {{/if}} {{/if}}>
+        ../type "true-false" )}} {{#if (equals id ../correctAnswer)}}checked{{/if}} {{/if}} {{/if}} {{#if ../submitted}}disabled{{/if}}>
       {{text}}
     </label>
     {{/each}}

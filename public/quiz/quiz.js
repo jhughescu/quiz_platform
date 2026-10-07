@@ -6,6 +6,8 @@ const resultsContainer = document.getElementById("results");
 let quizQuestions = [];
 let reviewToken = sessionStorage.getItem("quizReviewToken");
 let quizTemplateId = "default";
+let quizPresentation = null;
+let submissionId = null;
 
 function getDeploymentId() {
   const params = new URLSearchParams(window.location.search);
@@ -131,7 +133,8 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
-    quizTemplateId = quiz.template?.id || "default";
+    quizPresentation = getPresentation(quiz.template?.id);
+    quizTemplateId = quizPresentation.templateId;
     quizTitle.textContent = quiz.name;
     document.body.classList.toggle("review-mode", Boolean(reviewToken));
     quizQuestions = quiz.randomiseQuestions
@@ -139,17 +142,19 @@ async function loadQuiz() {
       : quiz.questions;
 
     questionsContainer.innerHTML = "";
-    for (let index = 0; index < quizQuestions.length; index++) {
-      const question = quizQuestions[index];
-      const html = await renderQuestion(
-        question,
-        index,
-        quiz.randomiseOptions,
-        Boolean(reviewToken),
-        quiz.template?.id,
-      );
-      questionsContainer.insertAdjacentHTML("beforeend", html);
-    }
+    await renderPresentation(
+      quizPresentation,
+      quizQuestions,
+      (question, index) =>
+        renderQuestion(
+          question,
+          index,
+          quiz.randomiseOptions,
+          Boolean(reviewToken),
+          quizTemplateId,
+        ),
+      submitQuestion,
+    );
   } catch (err) {
     console.error(err);
     quizTitle.textContent = "Unable to load quiz";
@@ -190,6 +195,39 @@ function collectAnswers() {
     }
   });
   return answers;
+}
+
+async function submitQuestion(questionId, answer) {
+  const deploymentId = getDeploymentId();
+  const url = submissionId
+    ? `/api/submissions/${submissionId}`
+    : "/api/submissions";
+  const method = submissionId ? "PATCH" : "POST";
+  const body = submissionId
+    ? { questionId, answer }
+    : { deploymentId, questionId, answer };
+  const response = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    console.error("Submission error:", error);
+    throw new Error(`HTTP ${response.status}`);
+  }
+  const submission = await response.json();
+  submissionId = submission._id;
+  if (submission.status === "completed") {
+    const templateData = prepareQuizResults(submission);
+    resultsContainer.innerHTML = await renderTemplate(
+      await getTemplatePath(quizTemplateId, "quiz-results"),
+      templateData,
+    );
+  }
+  return submission;
 }
 
 quizForm.addEventListener("submit", async (event) => {

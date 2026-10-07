@@ -126,6 +126,83 @@ async function scoreSubmission(deploymentId, answers) {
   return submission;
 }
 
+async function createSubmission(deploymentId, questionId, answer) {
+  const deployment = await Deployment.findOne({
+    _id: deploymentId,
+    status: "active",
+  });
+  if (!deployment) {
+    throw new Error("Deployment not found");
+  }
+  const question = deployment.questions.find((q) => q.id === questionId);
+  if (!question) {
+    throw new Error("Question not found");
+  }
+  const answers = new Map([[questionId, answer]]);
+  const correct = isCorrect(question, answer);
+  const submission = await submissionRepository.create({
+    deploymentId,
+    status: "in-progress",
+    answers,
+    score: correct ? 1 : 0,
+    total: deployment.questions.length,
+    results: [
+      {
+        questionId,
+        correct,
+      },
+    ],
+  });
+  return submission;
+}
+
+async function updateSubmission(submissionId, questionId, answer) {
+  const submission = await submissionRepository.findById(submissionId);
+  if (!submission) {
+    throw new Error("Submission not found");
+  }
+  if (submission.status === "completed") {
+    throw new Error("Submission already completed");
+  }
+  const deployment = await Deployment.findOne({
+    _id: submission.deploymentId,
+    status: "active",
+  });
+  if (!deployment) {
+    throw new Error("Deployment not found");
+  }
+  const question = deployment.questions.find((q) => q.id === questionId);
+  if (!question) {
+    throw new Error("Question not found");
+  }
+  if (submission.answers.has(questionId)) {
+    throw new Error("Question already submitted");
+  }
+  submission.answers.set(questionId, answer);
+  const answers = Object.fromEntries(submission.answers);
+  const results = deployment.questions
+    .filter((q) => Object.prototype.hasOwnProperty.call(answers, q.id))
+    .map((q) => ({
+      questionId: q.id,
+      correct: isCorrect(q, answers[q.id]),
+    }));
+  submission.score = results.filter((result) => result.correct).length;
+  submission.results = results;
+  if (submission.answers.size === deployment.questions.length) {
+    submission.status = "completed";
+    submission.results = deployment.questions.map((q) => ({
+      questionId: q.id,
+      correct: isCorrect(q, answers[q.id]),
+    }));
+    submission.score = submission.results.filter(
+      (result) => result.correct,
+    ).length;
+    submission.completedAt = new Date();
+  }
+  await submission.save();
+  return submission;
+}
+
 async function getActiveDeployment(id, includeAnswers = false) {
   const deployment = await Deployment.findOne({
     _id: id,
@@ -146,4 +223,10 @@ async function getActiveDeployment(id, includeAnswers = false) {
   };
 }
 
-module.exports = { getQuestions, scoreSubmission, getActiveDeployment };
+module.exports = {
+  getQuestions,
+  scoreSubmission,
+  createSubmission,
+  updateSubmission,
+  getActiveDeployment,
+};

@@ -51,4 +51,40 @@ async function getQuizReview(req, res, next) {
   }
 }
 
-module.exports = { getQuestions, submitAnswers, getQuiz, getQuizReview };
+async function createSubmission(req, res, next) {
+  const { deploymentId, questionId, answer } = req.body;
+  try {
+    res.json(
+      await quizService.createSubmission(
+        deploymentId,
+        questionId,
+        answer
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+async function updateSubmission(req, res, next) {
+  const { questionId, answer } = req.body;
+  try {
+    res.json(
+      await quizService.updateSubmission(
+        req.params.id,
+        questionId,
+        answer
+      )
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  getQuestions,
+  submitAnswers,
+  createSubmission,
+  updateSubmission,
+  getQuiz,
+  getQuizReview
+};
