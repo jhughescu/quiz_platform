@@ -3,13 +3,11 @@ const presentations = {
     mode: "all",
     navigation: false,
     progress: false,
-    templateId: "default",
   },
   "one-at-a-time": {
     mode: "single",
     navigation: true,
     progress: true,
-    templateId: "default",
   },
 };
 function getPresentation(id) {

@@ -33,6 +33,9 @@ router.post('/question-banks', validateBody(questionBankSchema), adminController
 router.put('/question-banks/:id', validateObjectId('id'), validateBody(questionBankSchema), adminController.updateQuestionBank);
 router.delete('/question-banks/:id', validateObjectId('id'), adminController.deleteQuestionBank);
 
+router.get('/templates', adminController.getTemplates);
+router.get('/presentations', adminController.getPresentations);
+
 router.post(
   '/deployments',
   validateBody(deploymentSchema),

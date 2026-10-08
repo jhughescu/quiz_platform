@@ -497,6 +497,42 @@ importForm.addEventListener("submit", async (e) => {
   }
 });
 
+
+// --- Templates ---
+
+async function loadTemplates() {
+  const response = await apiFetch("/api/admin/templates");
+  if (!response.ok) {
+    throw new Error("Failed to load templates");
+  }
+  const templates = await response.json();
+  const templateSelect = document.getElementById("deployment-template");
+  const versionSelect = document.getElementById("deployment-template-version");
+  templateSelect.innerHTML = '<option value="">Select a template</option>';
+  versionSelect.innerHTML = '<option value="">Select a version</option>';
+  templates.forEach((template) => {
+    const option = document.createElement("option");
+    option.value = template.id;
+    option.textContent = template.name;
+    option.dataset.version = template.version;
+    templateSelect.appendChild(option);
+  });
+  /*
+  templateSelect.addEventListener("change", () => {
+    versionSelect.innerHTML = '<option value="">Select a version</option>';
+    const selectedOption = templateSelect.selectedOptions[0];
+    if (!selectedOption || !selectedOption.dataset.version) {
+      return;
+    }
+    const option = document.createElement("option");
+    option.value = selectedOption.dataset.version;
+    option.textContent = selectedOption.dataset.version;
+    versionSelect.appendChild(option);
+    versionSelect.value = selectedOption.dataset.version;
+  });
+  */
+}
+
 // --- Question banks ---
 const questionBankDialog = document.getElementById("question-bank-dialog");
 const questionBankForm = document.getElementById("question-bank-form");
@@ -570,7 +606,6 @@ async function loadDeployments() {
   try {
     const response = await apiFetch("/api/admin/deployments");
     const deployments = await response.json();
-    console.log("Deployments API response:", deployments);
     if (!deployments.length) {
       container.textContent = "No deployments found.";
       return;
@@ -588,7 +623,7 @@ async function loadDeployments() {
       const item = document.createRange().createContextualFragment(html);
       item
         .querySelector(".deployment-view-btn")
-        .addEventListener("click", () => {
+        .addEventListener("click", async () => {
           viewDeployment(deployment._id);
         });
       container.appendChild(item);
@@ -598,9 +633,24 @@ async function loadDeployments() {
     container.textContent = "Failed to load deployments.";
   }
 }
-document.getElementById("new-deployment-btn").addEventListener("click", () => {
+document.getElementById("new-deployment-btn").addEventListener("click", async () => {
   renderDeploymentQuestionBanks();
+  await loadTemplates();
   document.getElementById("deployment-dialog").showModal();
+});
+document.getElementById("deployment-template").addEventListener("change", () => {
+  const templateSelect = document.getElementById("deployment-template");
+  const versionSelect = document.getElementById("deployment-template-version");
+  versionSelect.innerHTML = '<option value="">Select a version</option>';
+  const selectedOption = templateSelect.selectedOptions[0];
+  if (!selectedOption || !selectedOption.dataset.version) {
+    return;
+  }
+  const option = document.createElement("option");
+  option.value = selectedOption.dataset.version;
+  option.textContent = selectedOption.dataset.version;
+  versionSelect.appendChild(option);
+  versionSelect.value = selectedOption.dataset.version;
 });
 document
   .getElementById("deployment-cancel-btn")
@@ -673,7 +723,7 @@ document
   });
 async function viewDeployment(deploymentId) {
   const dialog = document.getElementById("deployment-details-dialog");
-  const nameElement = document.getElementById("deployment-details-name");
+  const nameElement = document.getElementById("deployment-details-name");F
   const contentElement = document.getElementById("deployment-details-content");
   nameElement.textContent = "";
   dialog.showModal();

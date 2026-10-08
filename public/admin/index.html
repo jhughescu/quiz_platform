@@ -223,21 +223,15 @@
               </label>
               <label>
                 Template
-                <input
-                  type="text"
-                  id="deployment-template"
-                  value="default"
-                  required
-                />
+                <select id="deployment-template" required>
+                  <option value="">Select a template</option>
+                </select>
               </label>
               <label>
                 Template version
-                <input
-                  type="text"
-                  id="deployment-template-version"
-                  value="1.0"
-                  required
-                />
+                <select id="deployment-template-version" required>
+                  <option value="">Select a version</option>
+                </select>
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" id="deployment-randomise-options" />

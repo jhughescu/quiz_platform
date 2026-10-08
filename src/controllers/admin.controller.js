@@ -2,6 +2,8 @@ const questionRepository = require("../repositories/question.repository");
 const questionBankRepository = require("../repositories/questionBank.repository");
 const submissionRepository = require("../repositories/submission.repository");
 const questionImportService = require("../services/questionImport.service");
+const templateService = require("../services/template.service");
+const presentationService = require("../services/presentation.service");
 const ROLES = require("../constants/roles");
 
 function canModify(question, user) {
@@ -10,6 +12,20 @@ function canModify(question, user) {
   );
 }
 
+async function getTemplates(req, res, next) {
+  try {
+    res.json(templateService.getTemplates());
+  } catch (err) {
+    next(err);
+  }
+}
+async function getPresentations(req, res, next) {
+  try {
+    res.json(presentationService.getPresentations());
+  } catch (err) {
+    next(err);
+  }
+}
 async function validateQuestionBank(questionBankId, user) {
   if (!questionBankId) return null;
 
@@ -402,4 +418,6 @@ module.exports = {
   deleteQuestionBank,
   listSubmissions,
   getSubmission,
+  getTemplates,
+  getPresentations
 };
