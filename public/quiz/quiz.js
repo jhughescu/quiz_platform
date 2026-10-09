@@ -6,7 +6,6 @@ const resultsContainer = document.getElementById("results");
 let quizQuestions = [];
 let reviewToken = sessionStorage.getItem("quizReviewToken");
 let quizTemplateId = "default";
-let quizPresentation = null;
 let submissionId = null;
 
 function getDeploymentId() {
@@ -133,7 +132,6 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
-    quizPresentation = getPresentation(quiz.presentation?.id);
     quizTemplateId = quiz.template?.id || "default";
     quizTitle.textContent = quiz.name;
     document.body.classList.toggle("review-mode", Boolean(reviewToken));
@@ -142,17 +140,18 @@ async function loadQuiz() {
       : quiz.questions;
 
     questionsContainer.innerHTML = "";
-    await renderPresentation(
-      quizPresentation,
+    const renderQuestionForPresentation = (question, index) =>
+      renderQuestion(
+        question,
+        index,
+        quiz.randomiseOptions,
+        Boolean(reviewToken),
+        quizTemplateId,
+      );
+    const presentationModule = await loadPresentation(quiz.presentation?.id);
+    await presentationModule.renderPresentation(
       quizQuestions,
-      (question, index) =>
-        renderQuestion(
-          question,
-          index,
-          quiz.randomiseOptions,
-          Boolean(reviewToken),
-          quizTemplateId,
-        ),
+      renderQuestionForPresentation,
       submitQuestion,
     );
   } catch (err) {
