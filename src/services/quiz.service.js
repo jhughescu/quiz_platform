@@ -215,6 +215,7 @@ async function getActiveDeployment(id, includeAnswers = false) {
     id: deployment._id,
     name: deployment.name,
     template: deployment.template,
+    presentation: deployment.presentation,
     randomiseOptions: deployment.randomiseOptions,
     randomiseQuestions: deployment.randomiseQuestions,
     questions: deployment.questions.map((q) =>

@@ -25,7 +25,6 @@ async function renderPresentation(
       const html = await renderQuestion(
         questions[index],
         index,
-        submittedQuestions.has(questions[index].id),
       );
       questionsContainer.insertAdjacentHTML("beforeend", html);
     }

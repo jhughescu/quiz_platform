@@ -9,6 +9,13 @@ const deploymentSchema = Joi.object({
     id: "default",
     version: "1.0",
   }),
+  presentation: Joi.object({
+    id: Joi.string().trim().min(1).default("default"),
+    version: Joi.string().trim().min(1).default("1.0"),
+  }).default({
+    id: "default",
+    version: "1.0",
+  }),
   randomiseOptions: Joi.boolean().default(false),
   randomiseQuestions: Joi.boolean().default(false),
 });
@@ -16,4 +23,3 @@ const deploymentSchema = Joi.object({
 module.exports = {
   deploymentSchema,
 };
-  

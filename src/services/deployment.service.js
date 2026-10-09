@@ -8,6 +8,7 @@ async function createDeployment({
   name,
   questionBankId,
   template,
+  presentation,
   randomiseOptions,
   randomiseQuestions,
   user
@@ -31,6 +32,7 @@ async function createDeployment({
     createdBy: user.sub,
     sourceQuestionBankId: questionBankId,
     template,
+    presentation,
     randomiseOptions,
     randomiseQuestions,
     questions: questionSnapshot

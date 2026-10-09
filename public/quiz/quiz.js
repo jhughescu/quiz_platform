@@ -133,8 +133,8 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
-    quizPresentation = getPresentation(quiz.template?.id);
-    quizTemplateId = quizPresentation.templateId;
+    quizPresentation = getPresentation(quiz.presentation?.id);
+    quizTemplateId = quiz.template?.id || "default";
     quizTitle.textContent = quiz.name;
     document.body.classList.toggle("review-mode", Boolean(reviewToken));
     quizQuestions = quiz.randomiseQuestions

@@ -1,129 +1,148 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const deploymentOptionSchema = new mongoose.Schema(
   {
     id: {
       type: String,
-      required: true
+      required: true,
     },
     text: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const deploymentQuestionSchema = new mongoose.Schema(
   {
     id: {
       type: String,
-      required: true
+      required: true,
     },
 
     type: {
       type: String,
-      required: true
+      required: true,
     },
 
     question: {
       type: String,
-      required: true
+      required: true,
     },
 
     options: {
       type: [deploymentOptionSchema],
-      default: undefined
+      default: undefined,
     },
 
     correctOptionId: {
-      type: String
+      type: String,
     },
 
     correctOptionIds: {
-      type: [String]
+      type: [String],
     },
 
     correctAnswer: {
-      type: String
+      type: String,
     },
 
     caseSensitive: {
-      type: Boolean
-    }
+      type: Boolean,
+    },
   },
-  { _id: false }
+  { _id: false },
 );
 const deploymentTemplateSchema = new mongoose.Schema(
   {
     id: {
       type: String,
       required: true,
-      default: 'default'
+      default: "default",
     },
 
     version: {
       type: String,
       required: true,
-      default: '1.0'
-    }
+      default: "1.0",
+    },
   },
-  { _id: false }
+  { _id: false },
+);
+const deploymentPresentationSchema = new mongoose.Schema(
+  {
+    id: {
+      type: String,
+      required: true,
+      default: "default",
+    },
+    version: {
+      type: String,
+      required: true,
+      default: "1.0",
+    },
+  },
+  { _id: false },
 );
 const deploymentSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
+      ref: "User",
+      required: true,
     },
 
     sourceQuestionBankId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'QuestionBank',
-      required: true
+      ref: "QuestionBank",
+      required: true,
     },
 
     template: {
-      id: {
-        type: String,
-        required: true,
-        default: 'default'
-      },
-
-      version: {
-        type: String,
-        required: true,
-        default: '1.0'
-      }
+      type: deploymentTemplateSchema,
+      required: true,
+      default: () => ({
+        id: "default",
+        version: "1.0",
+      }),
+    },
+    presentation: {
+      type: deploymentPresentationSchema,
+      required: true,
+      default: () => ({
+        id: "default",
+        version: "1.0",
+      }),
     },
 
     status: {
       type: String,
-      enum: ['active', 'closed'],
-      default: 'active'
+      enum: ["active", "closed"],
+      default: "active",
     },
     randomiseOptions: {
       type: Boolean,
-      default: false
+      default: false,
     },
     randomiseQuestions: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     questions: {
       type: [deploymentQuestionSchema],
-      required: true
-    }
+      required: true,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model('Deployment', deploymentSchema);
+
+module.exports = mongoose.model("Deployment", deploymentSchema);

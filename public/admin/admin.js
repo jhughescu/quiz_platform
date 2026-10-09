@@ -497,7 +497,6 @@ importForm.addEventListener("submit", async (e) => {
   }
 });
 
-
 // --- Templates ---
 
 async function loadTemplates() {
@@ -517,20 +516,21 @@ async function loadTemplates() {
     option.dataset.version = template.version;
     templateSelect.appendChild(option);
   });
-  /*
-  templateSelect.addEventListener("change", () => {
-    versionSelect.innerHTML = '<option value="">Select a version</option>';
-    const selectedOption = templateSelect.selectedOptions[0];
-    if (!selectedOption || !selectedOption.dataset.version) {
-      return;
-    }
+}
+async function loadPresentations() {
+  const response = await apiFetch("/api/admin/presentations");
+  if (!response.ok) {
+    throw new Error("Failed to load presentations");
+  }
+  const presentations = await response.json();
+  const select = document.getElementById("deployment-presentation");
+  select.innerHTML = '<option value="">Select a presentation</option>';
+  presentations.forEach((presentation) => {
     const option = document.createElement("option");
-    option.value = selectedOption.dataset.version;
-    option.textContent = selectedOption.dataset.version;
-    versionSelect.appendChild(option);
-    versionSelect.value = selectedOption.dataset.version;
+    option.value = presentation.id;
+    option.textContent = presentation.name;
+    select.appendChild(option);
   });
-  */
 }
 
 // --- Question banks ---
@@ -633,25 +633,49 @@ async function loadDeployments() {
     container.textContent = "Failed to load deployments.";
   }
 }
-document.getElementById("new-deployment-btn").addEventListener("click", async () => {
-  renderDeploymentQuestionBanks();
-  await loadTemplates();
-  document.getElementById("deployment-dialog").showModal();
-});
-document.getElementById("deployment-template").addEventListener("change", () => {
-  const templateSelect = document.getElementById("deployment-template");
-  const versionSelect = document.getElementById("deployment-template-version");
-  versionSelect.innerHTML = '<option value="">Select a version</option>';
-  const selectedOption = templateSelect.selectedOptions[0];
-  if (!selectedOption || !selectedOption.dataset.version) {
-    return;
-  }
-  const option = document.createElement("option");
-  option.value = selectedOption.dataset.version;
-  option.textContent = selectedOption.dataset.version;
-  versionSelect.appendChild(option);
-  versionSelect.value = selectedOption.dataset.version;
-});
+document
+  .getElementById("new-deployment-btn")
+  .addEventListener("click", async () => {
+    renderDeploymentQuestionBanks();
+    await loadTemplates();
+    await loadPresentations();
+    document.getElementById("deployment-dialog").showModal();
+  });
+document
+  .getElementById("deployment-template")
+  .addEventListener("change", () => {
+    const templateSelect = document.getElementById("deployment-template");
+    const versionSelect = document.getElementById(
+      "deployment-template-version",
+    );
+    versionSelect.innerHTML = '<option value="">Select a version</option>';
+    const selectedOption = templateSelect.selectedOptions[0];
+    if (!selectedOption || !selectedOption.dataset.version) {
+      return;
+    }
+    const option = document.createElement("option");
+    option.value = selectedOption.dataset.version;
+    option.textContent = selectedOption.dataset.version;
+    versionSelect.appendChild(option);
+    versionSelect.value = selectedOption.dataset.version;
+  });
+document
+  .getElementById("deployment-presentation")
+  .addEventListener("change", () => {
+    const presentationSelect = document.getElementById(
+      "deployment-presentation",
+    );
+    versionSelect.innerHTML = '<option value="">Select a version</option>';
+    const selectedOption = presentationSelect.selectedOptions[0];
+    if (!selectedOption || !selectedOption.dataset.version) {
+      return;
+    }
+    const option = document.createElement("option");
+    option.value = selectedOption.dataset.version;
+    option.textContent = selectedOption.dataset.version;
+    versionSelect.appendChild(option);
+    versionSelect.value = selectedOption.dataset.version;
+  });
 document
   .getElementById("deployment-cancel-btn")
   .addEventListener("click", () => {
@@ -671,6 +695,9 @@ document
       .value.trim();
     const templateVersion = document
       .getElementById("deployment-template-version")
+      .value.trim();
+    const presentationId = document
+      .getElementById("deployment-presentation")
       .value.trim();
     const errorElement = document.getElementById("deployment-form-error");
 
@@ -695,6 +722,10 @@ document
           template: {
             id: templateId,
             version: templateVersion,
+          },
+          presentation: {
+            id: presentationId,
+            version: "1.0", // Default version for now, can be updated later if needed
           },
           randomiseOptions,
           randomiseQuestions,
@@ -723,7 +754,8 @@ document
   });
 async function viewDeployment(deploymentId) {
   const dialog = document.getElementById("deployment-details-dialog");
-  const nameElement = document.getElementById("deployment-details-name");F
+  const nameElement = document.getElementById("deployment-details-name");
+  F;
   const contentElement = document.getElementById("deployment-details-content");
   nameElement.textContent = "";
   dialog.showModal();
