@@ -1,4 +1,5 @@
-const TOKEN_KEY = "quizAdminToken";
+
+import { getToken, setSession, clearSession, apiFetch } from "./modules/api.js";
 
 const loginView = document.getElementById("login-view");
 const dashboardView = document.getElementById("dashboard-view");
@@ -7,38 +8,7 @@ const loginError = document.getElementById("login-error");
 const currentUserEl = document.getElementById("current-user");
 const logoutBtn = document.getElementById("logout-btn");
 
-function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
-}
 
-function setSession(token, user) {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem("quizAdminUser", JSON.stringify(user));
-}
-
-function clearSession() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem("quizAdminUser");
-}
-
-async function apiFetch(path, options = {}) {
-  const res = await fetch(path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getToken()}`,
-      ...options.headers,
-    },
-  });
-
-  if (res.status === 401) {
-    clearSession();
-    showLogin();
-    throw new Error("Session expired, please log in again");
-  }
-
-  return res;
-}
 
 function showLogin() {
   loginView.hidden = false;
@@ -880,6 +850,9 @@ async function deleteUser(id) {
   await apiFetch(`/api/admin/users/${id}`, { method: "DELETE" });
   loadUsers();
 }
+
+// --- import listeners --- //
+window.addEventListener('admin-session-expired', showLogin);
 
 // --- Init ---
 if (getToken()) {
