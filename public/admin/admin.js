@@ -1,5 +1,12 @@
-
 import { getToken, setSession, clearSession, apiFetch } from "./modules/api.js";
+import {
+  initQuestionBanks,
+  deleteQuestionBank,
+  getQuestionBanks,
+  loadQuestionBanks,
+  openQuestionBankDialog,
+  renderDeploymentQuestionBanks,
+} from "./modules/question-banks.js";
 
 const loginView = document.getElementById("login-view");
 const dashboardView = document.getElementById("dashboard-view");
@@ -7,8 +14,6 @@ const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
 const currentUserEl = document.getElementById("current-user");
 const logoutBtn = document.getElementById("logout-btn");
-
-
 
 function showLogin() {
   loginView.hidden = false;
@@ -95,7 +100,6 @@ const qQuestionBank = document.getElementById("q-question-bank");
 const questionGroups = document.getElementById("question-groups");
 
 let editingQuestionId = null;
-let questionBanks = [];
 
 function updateTypeFields() {
   const type = qType.value;
@@ -129,34 +133,10 @@ document.getElementById("question-cancel-btn").addEventListener("click", () => {
 });
 
 async function loadQuestions() {
-  const [questionsRes, questionBanksRes] = await Promise.all([
-    apiFetch("/api/admin/questions"),
-    apiFetch("/api/admin/question-banks"),
-  ]);
-  const questions = await questionsRes.json();
-  questionBanks = await questionBanksRes.json();
-  renderQuestionBankOptions();
+  const response = await apiFetch("/api/admin/questions");
+  const questions = await response.json();
+  await loadQuestionBanks();
   await renderQuestionGroups(questions);
-}
-
-function renderQuestionBankOptions() {
-  qQuestionBank.innerHTML =
-    '<option value="">Unbanked</option>' +
-    questionBanks
-      .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
-      .join("");
-}
-
-function renderDeploymentQuestionBanks() {
-  const select = document.getElementById("deployment-question-bank");
-  if (!select) {
-    return;
-  }
-  select.innerHTML =
-    '<option value="">Select a question bank</option>' +
-    questionBanks
-      .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
-      .join("");
 }
 
 function isSuperuser() {
@@ -175,7 +155,7 @@ async function renderQuestionGroups(questions) {
       questions: unbankedQuestions,
       bank: null,
     },
-    ...questionBanks.map((bank) => ({
+    ...getQuestionBanks().map((bank) => ({
       name: bank.name,
       questions: questions.filter(
         (question) => question.questionBank === bank._id,
@@ -226,14 +206,14 @@ async function renderQuestionGroups(questions) {
   questionGroups.querySelectorAll(".edit-bank-btn").forEach((button) => {
     button.addEventListener("click", () =>
       openQuestionBankDialog(
-        questionBanks.find((bank) => bank._id === button.dataset.id),
+        getQuestionBanks().find((bank) => bank._id === button.dataset.id),
       ),
     );
   });
 
   questionGroups.querySelectorAll(".delete-bank-btn").forEach((button) => {
     button.addEventListener("click", () =>
-      deleteQuestionBank(button.dataset.id),
+      deleteQuestionBank(button.dataset.id, loadQuestions),
     );
   });
 }
@@ -407,7 +387,7 @@ document
     importFormDetails.innerHTML = "";
     importQuestionBank.innerHTML =
       '<option value="">Unbanked</option>' +
-      questionBanks
+      getQuestionBanks()
         .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
         .join("");
     importDialog.showModal();
@@ -504,69 +484,8 @@ async function loadPresentations() {
 }
 
 // --- Question banks ---
-const questionBankDialog = document.getElementById("question-bank-dialog");
-const questionBankForm = document.getElementById("question-bank-form");
-const questionBankFormTitle = document.getElementById(
-  "question-bank-form-title",
-);
-const questionBankFormError = document.getElementById(
-  "question-bank-form-error",
-);
-let editingQuestionBankId = null;
+// note: moving to modules/question-banks.js
 
-document
-  .getElementById("new-question-bank-btn")
-  .addEventListener("click", () => openQuestionBankDialog());
-document
-  .getElementById("question-bank-cancel-btn")
-  .addEventListener("click", () => questionBankDialog.close());
-
-function openQuestionBankDialog(questionBank) {
-  editingQuestionBankId = questionBank?._id || null;
-  questionBankFormTitle.textContent = questionBank
-    ? "Edit Question Bank"
-    : "New Question Bank";
-  document.getElementById("question-bank-name").value =
-    questionBank?.name || "";
-  questionBankFormError.textContent = "";
-  questionBankDialog.showModal();
-}
-
-questionBankForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  questionBankFormError.textContent = "";
-  const path = editingQuestionBankId
-    ? `/api/admin/question-banks/${editingQuestionBankId}`
-    : "/api/admin/question-banks";
-
-  try {
-    const res = await apiFetch(path, {
-      method: editingQuestionBankId ? "PUT" : "POST",
-      body: JSON.stringify({
-        name: document.getElementById("question-bank-name").value,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok)
-      throw new Error(
-        data.details ? data.details.join("; ") : data.error || "Save failed",
-      );
-
-    questionBankDialog.close();
-    loadQuestions();
-  } catch (err) {
-    questionBankFormError.textContent = err.message;
-  }
-});
-
-async function deleteQuestionBank(id) {
-  if (
-    !confirm("Delete this question bank? Its questions will remain unbanked.")
-  )
-    return;
-  await apiFetch(`/api/admin/question-banks/${id}`, { method: "DELETE" });
-  loadQuestions();
-}
 async function loadDeployments() {
   const container = document.getElementById("deployments-container");
   if (!container) {
@@ -851,10 +770,9 @@ async function deleteUser(id) {
   loadUsers();
 }
 
-// --- import listeners --- //
-window.addEventListener('admin-session-expired', showLogin);
-
 // --- Init ---
+initQuestionBanks({ loadQuestions });
+window.addEventListener("admin-session-expired", showLogin);
 if (getToken()) {
   showDashboard();
 } else {
