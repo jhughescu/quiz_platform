@@ -60,10 +60,7 @@ const qQuestionBank = document.getElementById("q-question-bank");
 export async function loadQuestionBanks() {
   const response = await apiFetch("/api/admin/question-banks");
   questionBanks = await response.json();
-  console.log(response);
-  console.log(questionBanks);
   renderQuestionBankOptions();
-  console.log('dunne');
 }
 export function getQuestionBanks() {
   return questionBanks;

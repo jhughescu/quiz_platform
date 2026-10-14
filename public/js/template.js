@@ -8,7 +8,7 @@ Handlebars.registerHelper('equals', function (value, expected) {
 Handlebars.registerHelper('includes', function (array, value) {
   return Array.isArray(array) && array.includes(value);
 });
-async function renderTemplate(templatePath, data = {}) {
+export async function renderTemplate(templatePath, data = {}) {
   let template = templateCache[templatePath];
   if (!template) {
     const response = await fetch(templatePath);
@@ -21,4 +21,3 @@ async function renderTemplate(templatePath, data = {}) {
   }
   return template(data);
 }
-

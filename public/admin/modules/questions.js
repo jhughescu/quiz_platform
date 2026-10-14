@@ -1,6 +1,7 @@
 import { apiFetch } from "./api.js";
 
 let editingQuestionId = null;
+let qType = document.getElementById("q-type");
 
 export function initNewQuestionButton() {
   const questionDialog = document.getElementById("question-dialog");
@@ -9,6 +10,7 @@ export function initNewQuestionButton() {
   const questionFormError = document.getElementById("question-form-error");
   document.getElementById("new-question-btn").addEventListener("click", () => {
     editingQuestionId = null;
+    qType.disabled = false;
     questionFormTitle.textContent = "New Question";
     questionForm.reset();
     updateTypeFields();
@@ -78,11 +80,11 @@ export function openEditDialog(question) {
   const questionDialog = document.getElementById("question-dialog");
   const questionFormTitle = document.getElementById("question-form-title");
   const questionFormError = document.getElementById("question-form-error");
-  const qType = document.getElementById("q-type");
   const qQuestionBank = document.getElementById("q-question-bank");
   questionFormTitle.textContent = "Edit Question";
   questionFormError.textContent = "";
   qType.value = question.type;
+  qType.disabled = true;
   document.getElementById("q-text").value = question.question;
   document.getElementById("q-options").value = (question.options || []).join(
     "\n",

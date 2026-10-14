@@ -1,3 +1,4 @@
+import { renderTemplate } from "../../../js/template.js";
 export async function renderPresentation(
   questions,
   renderQuestion,

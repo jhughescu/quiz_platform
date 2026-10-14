@@ -1,3 +1,5 @@
+import { renderTemplate } from "/js/template.js";
+
 const quizTitle = document.getElementById("quiz-title");
 const questionsContainer = document.getElementById("questions");
 const quizForm = document.getElementById("quiz-form");

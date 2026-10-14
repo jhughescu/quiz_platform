@@ -75,7 +75,12 @@ async function updateQuestion(req, res, next) {
     if (!existing) return res.status(404).json({ error: "Question not found" });
     if (!canModify(existing, req.user))
       return res.status(403).json({ error: "Forbidden" });
-
+    if (req.body.type && req.body.type !== existing.type) {
+      return res.status(400).json({
+        error:
+          "Question type cannot be changed. Delete the question and create a new one.",
+      });
+    }
     const bankError = await validateQuestionBank(
       req.body.questionBank,
       req.user,
@@ -260,10 +265,7 @@ function formatQuestion(question) {
   let str = `\n[${question.type}]\n`;
   str += `${question.question}\n`;
 
-  if (
-    question.type === "multiple-choice" ||
-    question.type === "multi-select"
-  ) {
+  if (question.type === "multiple-choice" || question.type === "multi-select") {
     const corr =
       question.type === "multiple-choice"
         ? [question.correctIndex]
@@ -419,5 +421,5 @@ module.exports = {
   listSubmissions,
   getSubmission,
   getTemplates,
-  getPresentations
+  getPresentations,
 };

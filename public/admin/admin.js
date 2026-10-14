@@ -1,4 +1,5 @@
 import { getToken, setSession, clearSession, apiFetch } from "./modules/api.js";
+import { renderTemplate } from "../js/template.js";
 import {
   initQuestionBanks,
   deleteQuestionBank,
@@ -8,16 +9,14 @@ import {
   renderDeploymentQuestionBanks,
 } from "./modules/question-banks.js";
 import {
-  buildQuestionPayload,
   deleteQuestion,
   openEditDialog,
-  getEditingQuestionId,
-  updateTypeFields,
   initNewQuestionButton,
   initQuestionCancelButton,
   initQuestionTypeListener,
-  initQuestionForm
+  initQuestionForm,
 } from "./modules/questions.js";
+import { renderQuestionGroups } from "./modules/question-groups.js";
 
 const loginView = document.getElementById("login-view");
 const dashboardView = document.getElementById("dashboard-view");
@@ -102,23 +101,18 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 });
 
 // --- Questions ---
-const questionDialog = document.getElementById("question-dialog");
-const questionForm = document.getElementById("question-form");
-const questionFormTitle = document.getElementById("question-form-title");
-const questionFormError = document.getElementById("question-form-error");
-const qType = document.getElementById("q-type");
-const qQuestionBank = document.getElementById("q-question-bank");
 const questionGroups = document.getElementById("question-groups");
-
-let editingQuestionId = null;
-
-
 
 async function loadQuestions() {
   const response = await apiFetch("/api/admin/questions");
   const questions = await response.json();
   await loadQuestionBanks();
-  await renderQuestionGroups(questions);
+  await renderQuestionGroups(questions, {
+    questionGroups,
+    loadQuestions,
+    exportQuestionBank,
+    showOwner: isSuperuser(),
+  });
 }
 
 function isSuperuser() {
@@ -126,79 +120,6 @@ function isSuperuser() {
   return user?.role === "superuser";
 }
 
-async function renderQuestionGroups(questions) {
-  const unbankedQuestions = questions.filter(
-    (question) => !question.questionBank,
-  );
-
-  const groups = [
-    {
-      name: "Unbanked Questions",
-      questions: unbankedQuestions,
-      bank: null,
-    },
-    ...getQuestionBanks().map((bank) => ({
-      name: bank.name,
-      questions: questions.filter(
-        (question) => question.questionBank === bank._id,
-      ),
-      bank,
-    })),
-  ];
-
-  const showOwner = isSuperuser();
-
-  const groupData = groups.map((group) => ({
-    ...group,
-    showOwner,
-    ownerEmail: group.bank?.createdBy?.email || "Unknown",
-    questions: group.questions.map((question) => ({
-      ...question,
-      ownerEmail: question.createdBy?.email || "Unknown",
-    })),
-  }));
-
-  questionGroups.innerHTML = await renderTemplate(
-    "/admin/templates/question-groups.hbs",
-    {
-      groups: groupData,
-      showOwner,
-    },
-  );
-
-  questionGroups.querySelectorAll("tr[data-id]").forEach((row) => {
-    const id = row.dataset.id;
-    const question = questions.find((q) => q._id === id);
-
-    row
-      .querySelector(".edit-btn")
-      .addEventListener("click", () => openEditDialog(question));
-
-    row
-      .querySelector(".delete-btn")
-      .addEventListener("click", () => deleteQuestion(id, loadQuestions));
-  });
-
-  questionGroups.querySelectorAll(".export-bank-btn").forEach((button) => {
-    button.addEventListener("click", () =>
-      exportQuestionBank(button.dataset.id),
-    );
-  });
-
-  questionGroups.querySelectorAll(".edit-bank-btn").forEach((button) => {
-    button.addEventListener("click", () =>
-      openQuestionBankDialog(
-        getQuestionBanks().find((bank) => bank._id === button.dataset.id),
-      ),
-    );
-  });
-
-  questionGroups.querySelectorAll(".delete-bank-btn").forEach((button) => {
-    button.addEventListener("click", () =>
-      deleteQuestionBank(button.dataset.id, loadQuestions),
-    );
-  });
-}
 const exportButtonFull = document.getElementById("export-questions-btn");
 async function exportAllQuestions() {
   const res = await apiFetch(`/api/admin/export-all-questions`);
@@ -248,7 +169,6 @@ async function exportQuestionBank(bankId) {
   link.remove();
   URL.revokeObjectURL(url);
 }
-
 
 // --- Bulk import ---
 const importDialog = document.getElementById("import-dialog");
@@ -523,7 +443,6 @@ document
 async function viewDeployment(deploymentId) {
   const dialog = document.getElementById("deployment-details-dialog");
   const nameElement = document.getElementById("deployment-details-name");
-  F;
   const contentElement = document.getElementById("deployment-details-content");
   nameElement.textContent = "";
   dialog.showModal();
@@ -651,7 +570,7 @@ async function deleteUser(id) {
 
 // --- Init ---
 initQuestionBanks({ loadQuestions });
-initNewQuestionButton(); 
+initNewQuestionButton();
 initQuestionCancelButton();
 initQuestionTypeListener();
 initQuestionForm({ apiFetch, loadQuestions });
