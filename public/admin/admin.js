@@ -7,6 +7,17 @@ import {
   openQuestionBankDialog,
   renderDeploymentQuestionBanks,
 } from "./modules/question-banks.js";
+import {
+  buildQuestionPayload,
+  deleteQuestion,
+  openEditDialog,
+  getEditingQuestionId,
+  updateTypeFields,
+  initNewQuestionButton,
+  initQuestionCancelButton,
+  initQuestionTypeListener,
+  initQuestionForm
+} from "./modules/questions.js";
 
 const loginView = document.getElementById("login-view");
 const dashboardView = document.getElementById("dashboard-view");
@@ -101,36 +112,7 @@ const questionGroups = document.getElementById("question-groups");
 
 let editingQuestionId = null;
 
-function updateTypeFields() {
-  const type = qType.value;
-  document
-    .getElementById("q-options-field")
-    .classList.toggle(
-      "active",
-      type === "multiple-choice" || type === "multi-select",
-    );
-  document
-    .getElementById("q-true-false-field")
-    .classList.toggle("active", type === "true-false");
-  document
-    .getElementById("q-short-answer-field")
-    .classList.toggle("active", type === "short-answer");
-}
 
-qType.addEventListener("change", updateTypeFields);
-
-document.getElementById("new-question-btn").addEventListener("click", () => {
-  editingQuestionId = null;
-  questionFormTitle.textContent = "New Question";
-  questionForm.reset();
-  updateTypeFields();
-  questionFormError.textContent = "";
-  questionDialog.showModal();
-});
-
-document.getElementById("question-cancel-btn").addEventListener("click", () => {
-  questionDialog.close();
-});
 
 async function loadQuestions() {
   const response = await apiFetch("/api/admin/questions");
@@ -194,7 +176,7 @@ async function renderQuestionGroups(questions) {
 
     row
       .querySelector(".delete-btn")
-      .addEventListener("click", () => deleteQuestion(id));
+      .addEventListener("click", () => deleteQuestion(id, loadQuestions));
   });
 
   questionGroups.querySelectorAll(".export-bank-btn").forEach((button) => {
@@ -267,109 +249,6 @@ async function exportQuestionBank(bankId) {
   URL.revokeObjectURL(url);
 }
 
-function openEditDialog(question) {
-  editingQuestionId = question._id;
-  questionFormTitle.textContent = "Edit Question";
-  questionFormError.textContent = "";
-  qType.value = question.type;
-  document.getElementById("q-text").value = question.question;
-  document.getElementById("q-options").value = (question.options || []).join(
-    "\n",
-  );
-  document.getElementById("q-correct-index").value =
-    question.correctIndex ?? "";
-  document.getElementById("q-correct-indexes").value = (
-    question.correctIndexes || []
-  ).join(",");
-  document.getElementById("q-correct-boolean").value = String(
-    question.correctAnswer ?? "true",
-  );
-  document.getElementById("q-correct-text").value =
-    question.type === "short-answer" ? question.correctAnswer || "" : "";
-  document.getElementById("q-case-sensitive").checked = Boolean(
-    question.caseSensitive,
-  );
-  qQuestionBank.value = question.questionBank || "";
-  updateTypeFields();
-  questionDialog.showModal();
-}
-
-function buildQuestionPayload() {
-  const type = qType.value;
-  const payload = {
-    type,
-    question: document.getElementById("q-text").value,
-    questionBank: qQuestionBank.value || null,
-  };
-
-  if (type === "multiple-choice" || type === "multi-select") {
-    payload.options = document
-      .getElementById("q-options")
-      .value.split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-
-  if (type === "multiple-choice") {
-    payload.correctIndex = Number(
-      document.getElementById("q-correct-index").value,
-    );
-  }
-
-  if (type === "multi-select") {
-    payload.correctIndexes = document
-      .getElementById("q-correct-indexes")
-      .value.split(",")
-      .map((s) => s.trim())
-      .filter((s) => s.length)
-      .map(Number);
-  }
-
-  if (type === "true-false") {
-    payload.correctAnswer =
-      document.getElementById("q-correct-boolean").value === "true";
-  }
-
-  if (type === "short-answer") {
-    payload.correctAnswer = document.getElementById("q-correct-text").value;
-    payload.caseSensitive = document.getElementById("q-case-sensitive").checked;
-  }
-
-  return payload;
-}
-
-questionForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  questionFormError.textContent = "";
-
-  const payload = buildQuestionPayload();
-  const path = editingQuestionId
-    ? `/api/admin/questions/${editingQuestionId}`
-    : "/api/admin/questions";
-  const method = editingQuestionId ? "PUT" : "POST";
-
-  try {
-    const res = await apiFetch(path, { method, body: JSON.stringify(payload) });
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(
-        data.details ? data.details.join("; ") : data.error || "Save failed",
-      );
-    }
-
-    questionDialog.close();
-    loadQuestions();
-  } catch (err) {
-    questionFormError.textContent = err.message;
-  }
-});
-
-async function deleteQuestion(id) {
-  if (!confirm("Delete this question?")) return;
-  await apiFetch(`/api/admin/questions/${id}`, { method: "DELETE" });
-  loadQuestions();
-}
 
 // --- Bulk import ---
 const importDialog = document.getElementById("import-dialog");
@@ -772,6 +651,10 @@ async function deleteUser(id) {
 
 // --- Init ---
 initQuestionBanks({ loadQuestions });
+initNewQuestionButton(); 
+initQuestionCancelButton();
+initQuestionTypeListener();
+initQuestionForm({ apiFetch, loadQuestions });
 window.addEventListener("admin-session-expired", showLogin);
 if (getToken()) {
   showDashboard();
