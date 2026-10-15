@@ -44,7 +44,7 @@ function sanitizeDeploymentQuestion(q, includeAnswers = false) {
           { id: "false", text: "False" },
         ],
         ...(includeAnswers && {
-          correctAnswer: String(q.correctAnswer),
+          correctAnswer: q.correctAnswer,
         }),
       };
     case QUESTION_TYPES.SHORT_ANSWER:
@@ -65,7 +65,7 @@ function isCorrect(q, submitted) {
     case QUESTION_TYPES.MULTIPLE_CHOICE:
       return submitted === q.correctOptionId;
     case QUESTION_TYPES.TRUE_FALSE:
-      return submitted === String(q.correctAnswer);
+      return submitted === q.correctAnswer;
     case QUESTION_TYPES.MULTI_SELECT: {
       if (!Array.isArray(submitted)) {
         return false;
