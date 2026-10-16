@@ -317,26 +317,27 @@ async function exportQuestionBank(req, res, next) {
   } catch (err) {
     next(err);
   }
-}
-async function exportAllQuestions(req, res, next) {
+}async function exportAllQuestions(req, res, next) {
   const questionBanks = await questionBankRepository.findAll();
   const questions = await questionRepository.findAll();
   let str = "";
-
+  const unbankedQuestions = questions.filter((q) => !q.questionBank);
+  if (unbankedQuestions.length > 0) {
+    for (const question of unbankedQuestions) {
+      str += formatQuestion(question);
+    }
+  }
   for (const questionBank of questionBanks) {
     const questionSet = questions.filter(
-      (q) => q.questionBank.toString() === questionBank._id.toString(),
+      (q) => q.questionBank && q.questionBank.toString() === questionBank._id.toString(),
     );
-
     if (questionSet.length > 0) {
       str += `\n@QuestionBank: ${questionBank.name}\n`;
-
       for (const question of questionSet) {
         str += formatQuestion(question);
       }
     }
   }
-
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader(
     "Content-Disposition",

@@ -75,6 +75,12 @@ async function renderQuestion(
       options: shuffle([...question.options]),
     };
   }
+  if (review && question.type === "true-false") {
+    question = {
+      ...question,
+      correctAnswer: String(question.correctAnswer),
+    };
+  }
   switch (question.type) {
     case "multiple-choice":
     case "true-false":

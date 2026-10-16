@@ -20,34 +20,27 @@ const deploymentQuestionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     type: {
       type: String,
       required: true,
     },
-
     question: {
       type: String,
       required: true,
     },
-
     options: {
       type: [deploymentOptionSchema],
       default: undefined,
     },
-
     correctOptionId: {
       type: String,
     },
-
     correctOptionIds: {
       type: [String],
     },
-
     correctAnswer: {
-      type: String,
+      type: mongoose.Schema.Types.Mixed,
     },
-
     caseSensitive: {
       type: Boolean,
     },
@@ -143,6 +136,5 @@ const deploymentSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
 
 module.exports = mongoose.model("Deployment", deploymentSchema);
