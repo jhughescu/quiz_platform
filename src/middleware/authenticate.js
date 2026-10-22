@@ -7,6 +7,7 @@ function authenticate(req, res, next) {
   const [scheme, token] = header.split(' ');
 
   if (scheme !== 'Bearer' || !token) {
+
     return res.status(401).json({ error: 'Missing or invalid Authorization header' });
   }
 
@@ -14,6 +15,7 @@ function authenticate(req, res, next) {
     req.user = verifyToken(token);
     next();
   } catch (err) {
+    console.error("JWT verification failed:", err);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }

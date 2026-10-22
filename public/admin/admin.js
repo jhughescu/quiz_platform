@@ -1,16 +1,11 @@
 import { getToken, setSession, clearSession, apiFetch } from "./modules/api.js";
-import { renderTemplate } from "../js/template.js";
 import {
   initQuestionBanks,
-  deleteQuestionBank,
   getQuestionBanks,
   loadQuestionBanks,
-  openQuestionBankDialog,
   renderDeploymentQuestionBanks,
 } from "./modules/question-banks.js";
 import {
-  deleteQuestion,
-  openEditDialog,
   initNewQuestionButton,
   initQuestionCancelButton,
   initQuestionTypeListener,
@@ -19,15 +14,13 @@ import {
 import { renderQuestionGroups } from "./modules/question-groups.js";
 import { loadSubmissions } from "./modules/submissions.js";
 import { initUsers, loadUsers } from "./modules/users.js";
-import {
-  loadDeployments,
-  initDeployments,
-} from "./modules/deployments.js";
+import { loadDeployments, initDeployments } from "./modules/deployments.js";
 import {
   exportQuestionBank,
   initExportAllQuestions,
   initImport,
 } from "./modules/import-export.js";
+import { initAdminSession, resetAdminTimeout } from "./modules/session.js";
 
 const loginView = document.getElementById("login-view");
 const dashboardView = document.getElementById("dashboard-view");
@@ -37,11 +30,13 @@ const currentUserEl = document.getElementById("current-user");
 const logoutBtn = document.getElementById("logout-btn");
 
 function showLogin() {
+  document.querySelectorAll("dialog[open]").forEach((dialog) => dialog.close());
   loginView.hidden = false;
   dashboardView.hidden = true;
 }
 
 function showDashboard() {
+  console.log("showDashboard called", new Date().toISOString());
   loginView.hidden = true;
   dashboardView.hidden = false;
   const user = JSON.parse(localStorage.getItem("quizAdminUser") || "null");
@@ -67,7 +62,7 @@ function showDashboard() {
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.textContent = "";
-
+  initAdminSession();
   const email = document.getElementById("login-email").value;
   const password = document.getElementById("login-password").value;
 
@@ -85,6 +80,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     const data = await res.json();
     setSession(data.token, data.user);
+    console.log("Token immediately after login:", localStorage.getItem("quizAdminToken"));
     showDashboard();
   } catch (err) {
     loginError.textContent = err.message;
@@ -99,14 +95,24 @@ logoutBtn.addEventListener("click", () => {
 // --- Tabs ---
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
+    resetAdminTimeout();
     document
       .querySelectorAll(".tab-btn")
       .forEach((b) => b.classList.remove("active"));
     document.querySelectorAll(".tab-panel").forEach((p) => (p.hidden = true));
     btn.classList.add("active");
     document.getElementById(`${btn.dataset.tab}-tab`).hidden = false;
+    if (btn.dataset.tab === "questions") {
+      loadQuestions(true);
+    }
     if (btn.dataset.tab === "deployments") {
-      loadDeployments();
+      loadDeployments(true);
+    }
+    if (btn.dataset.tab === "submissions") {
+      loadSubmissions(true);
+    }
+    if (btn.dataset.tab === "users") {
+      loadUsers(true);
     }
   });
 });
@@ -114,8 +120,9 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 // --- Questions ---
 const questionGroups = document.getElementById("question-groups");
 
-async function loadQuestions() {
-  const response = await apiFetch("/api/admin/questions");
+async function loadQuestions(userActivity = false) {
+  console.log("loadQuestions started", new Date().toISOString());
+  const response = await apiFetch("/api/admin/questions", {}, userActivity);
   const questions = await response.json();
   await loadQuestionBanks();
   await renderQuestionGroups(questions, {
@@ -130,14 +137,10 @@ function isSuperuser() {
   const user = JSON.parse(localStorage.getItem("quizAdminUser") || "null");
   return user?.role === "superuser";
 }
-
-
-// --- Bulk import ---
-
-
-
 // --- Init ---
 initUsers();
+window.addEventListener("admin-session-expired", showLogin);
+initAdminSession();
 initDeployments({
   renderDeploymentQuestionBanks,
 });
@@ -151,7 +154,7 @@ initNewQuestionButton();
 initQuestionCancelButton();
 initQuestionTypeListener();
 initQuestionForm({ apiFetch, loadQuestions });
-window.addEventListener("admin-session-expired", showLogin);
+console.log("Initial token exists:", Boolean(getToken()));
 if (getToken()) {
   showDashboard();
 } else {

@@ -1,4 +1,5 @@
 import { apiFetch } from "./api.js";
+import { resetAdminTimeout } from "./session.js";
 
 let editingQuestionId = null;
 let qType = document.getElementById("q-type");
@@ -41,7 +42,7 @@ export function initQuestionForm({ apiFetch, loadQuestions }) {
       : "/api/admin/questions";
     const method = editingQuestionId ? "PUT" : "POST";
     try {
-      const res = await apiFetch(path, { method, body: JSON.stringify(payload) });
+      const res = await apiFetch(path, { method, body: JSON.stringify(payload) }, true);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(
@@ -49,6 +50,7 @@ export function initQuestionForm({ apiFetch, loadQuestions }) {
         );
       }
       questionDialog.close();
+      resetAdminTimeout();
       loadQuestions();
     } catch (err) {
       questionFormError.textContent = err.message;
@@ -57,7 +59,8 @@ export function initQuestionForm({ apiFetch, loadQuestions }) {
 }
 export async function deleteQuestion(id, loadQuestions) {
   if (!confirm("Delete this question?")) return;
-  await apiFetch(`/api/admin/questions/${id}`, { method: "DELETE" });
+  await apiFetch(`/api/admin/questions/${id}`, { method: "DELETE" }, true);
+  resetAdminTimeout();
   loadQuestions();
 }
 export function updateTypeFields() {

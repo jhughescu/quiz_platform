@@ -1,7 +1,7 @@
 import { apiFetch } from "./api.js";
 const submissionsTableBody = document.getElementById("submissions-table-body");
-export async function loadSubmissions() {
-  const res = await apiFetch("/api/admin/submissions");
+export async function loadSubmissions(userActivity = false) {
+  const res = await apiFetch("/api/admin/submissions", {}, userActivity);
   const submissions = await res.json();
   submissionsTableBody.innerHTML = submissions
     .map(

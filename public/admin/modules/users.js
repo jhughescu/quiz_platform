@@ -26,7 +26,7 @@ export function initUsers() {
       const res = await apiFetch("/api/admin/users", {
         method: "POST",
         body: JSON.stringify(payload),
-      });
+      }, true);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(
@@ -42,8 +42,8 @@ export function initUsers() {
     }
   });
 }
-export async function loadUsers() {
-  const res = await apiFetch("/api/admin/users");
+export async function loadUsers(userActivity = false) {
+  const res = await apiFetch("/api/admin/users", {}, userActivity);
   const users = await res.json();
   const currentUser = JSON.parse(
     localStorage.getItem("quizAdminUser") || "null",
@@ -65,6 +65,6 @@ export async function loadUsers() {
 }
 async function deleteUser(id) {
   if (!confirm("Delete this user?")) return;
-  await apiFetch(`/api/admin/users/${id}`, { method: "DELETE" });
+  await apiFetch(`/api/admin/users/${id}`, { method: "DELETE" }, true);
   loadUsers();
 }

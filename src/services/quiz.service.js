@@ -118,6 +118,7 @@ async function scoreSubmission(deploymentId, answers) {
     };
   });
   const submission = {
+    deploymentId,
     score,
     total: deployment.questions.length,
     results,

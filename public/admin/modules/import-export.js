@@ -1,4 +1,6 @@
 import { apiFetch } from "./api.js";
+import { resetAdminTimeout } from "./session.js";
+
 const exportButtonFull = document.getElementById("export-questions-btn");
 const importDialog = document.getElementById("import-dialog");
 const importForm = document.getElementById("import-form");
@@ -7,7 +9,8 @@ const importFormDetails = document.getElementById("import-form-details");
 const importQuestionBank = document.getElementById("import-question-bank");
 const importFile = document.getElementById("import-file");
 export async function exportAllQuestions() {
-  const res = await apiFetch(`/api/admin/export-all-questions`);
+  resetAdminTimeout();
+  const res = await apiFetch(`/api/admin/export-all-questions`, {}, true);
   if (!res.ok) {
     throw new Error(`Export failed: ${res.status}`);
   }
@@ -28,7 +31,8 @@ export function initExportAllQuestions() {
   });
 }
 export async function exportQuestionBank(bankId) {
-  const res = await apiFetch(`/api/admin/export-question-bank/${bankId}`);
+  resetAdminTimeout();
+  const res = await apiFetch(`/api/admin/export-question-bank/${bankId}`, {}, true);
   if (!res.ok) {
     throw new Error(`Export failed: ${res.status}`);
   }
@@ -79,13 +83,12 @@ export function initImport({ loadQuestions, getQuestionBanks }) {
       importFile.value = "";
     }
   });
-  document
-    .getElementById("import-cancel-btn")
-    .addEventListener("click", () => {
-      importDialog.close();
-    });
+  document.getElementById("import-cancel-btn").addEventListener("click", () => {
+    importDialog.close();
+  });
   importForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    resetAdminTimeout();
     importFormError.textContent = "";
     importFormDetails.innerHTML = "";
     const payload = {
@@ -96,7 +99,7 @@ export function initImport({ loadQuestions, getQuestionBanks }) {
       const res = await apiFetch("/api/admin/questions/import", {
         method: "POST",
         body: JSON.stringify(payload),
-      });
+      }, true);
       const data = await res.json();
       if (!res.ok) {
         importFormError.textContent = data.error || "Import failed";

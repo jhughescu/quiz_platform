@@ -10,12 +10,16 @@ export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem("quizAdminUser");
 }
-export async function apiFetch(path, options = {}) {
+export async function apiFetch(path, options = {}, userActivity = false) {
   const token = getToken();
+  console.log("apiFetch:", path, token);
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
   };
+  if (userActivity) {
+    headers["X-User-Activity"] = "true";
+  }
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -27,6 +31,10 @@ export async function apiFetch(path, options = {}) {
     clearSession();
     window.dispatchEvent(new Event("admin-session-expired"));
     throw new Error("Session expired, please log in again");
+  }
+  const renewedToken = response.headers.get("X-Renewed-Token");
+  if (renewedToken) {
+    localStorage.setItem(TOKEN_KEY, renewedToken);
   }
   return response;
 }

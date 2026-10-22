@@ -1,6 +1,6 @@
 const presentations = {
   default: {
-    name: "Default",
+    name: "Single page",
     version: "1.0",
     mode: "all",
     navigation: false,

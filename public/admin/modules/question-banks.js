@@ -1,4 +1,5 @@
 import { apiFetch } from "./api.js";
+import { resetAdminTimeout } from "./session.js";
 
 const questionBankDialog = document.getElementById("question-bank-dialog");
 const questionBankForm = document.getElementById("question-bank-form");
@@ -41,7 +42,7 @@ questionBankForm.addEventListener("submit", async (e) => {
       body: JSON.stringify({
         name: document.getElementById("question-bank-name").value,
       }),
-    });
+    }, true);
     const data = await res.json();
     if (!res.ok)
       throw new Error(
@@ -49,6 +50,7 @@ questionBankForm.addEventListener("submit", async (e) => {
       );
 
     questionBankDialog.close();
+    resetAdminTimeout();
     await refreshQuestions();
   } catch (err) {
     console.error("Question-bank save/refresh failed:", err);
@@ -58,6 +60,7 @@ questionBankForm.addEventListener("submit", async (e) => {
 let questionBanks = [];
 const qQuestionBank = document.getElementById("q-question-bank");
 export async function loadQuestionBanks() {
+  console.log("loadQuestionBanks started", new Date().toISOString());
   const response = await apiFetch("/api/admin/question-banks");
   questionBanks = await response.json();
   renderQuestionBankOptions();
@@ -86,7 +89,8 @@ export async function deleteQuestionBank(id, loadQuestions) {
     !confirm("Delete this question bank? Its questions will remain unbanked.")
   )
     return;
-  await apiFetch(`/api/admin/question-banks/${id}`, { method: "DELETE" });
+  await apiFetch(`/api/admin/question-banks/${id}`, { method: "DELETE" }, true);
+  resetAdminTimeout();
   loadQuestions();
 }
 let refreshQuestions;

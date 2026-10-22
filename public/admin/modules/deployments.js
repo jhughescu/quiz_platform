@@ -1,5 +1,6 @@
 import { apiFetch } from "./api.js";
 import { renderTemplate } from "../../js/template.js";
+import { resetAdminTimeout } from "./session.js";
 
 export function initDeployments({ renderDeploymentQuestionBanks }) {
   document
@@ -68,10 +69,14 @@ export function initDeployments({ renderDeploymentQuestionBanks }) {
       };
 
       try {
-        const response = await apiFetch("/api/admin/deployments", {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
+        const response = await apiFetch(
+          "/api/admin/deployments",
+          {
+            method: "POST",
+            body: JSON.stringify(payload),
+          },
+          true,
+        );
         const data = await response.json();
         if (!response.ok) {
           throw new Error(
@@ -81,18 +86,19 @@ export function initDeployments({ renderDeploymentQuestionBanks }) {
           );
         }
         document.getElementById("deployment-dialog").close();
+        resetAdminTimeout();
         loadDeployments();
       } catch (err) {
         errorElement.textContent = err.message;
       }
     });
 }
-export async function loadDeployments() {
+export async function loadDeployments(userActivity = false) {
   const container = document.getElementById("deployments-container");
   if (!container) return;
   container.textContent = "Loading deployments...";
   try {
-    const response = await apiFetch("/api/admin/deployments");
+    const response = await apiFetch("/api/admin/deployments", {}, userActivity);
     const deployments = await response.json();
     if (!deployments.length) {
       container.textContent = "No deployments found.";

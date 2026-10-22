@@ -5,7 +5,8 @@ const { port } = require('./config');
 async function start() {
   await connectDB();
   app.listen(port, () => {
-    console.log(`Quiz app listening on http://localhost:${port}`);
+    // console.log(`Quiz app listening on http://localhost:${port}`);
+    console.log(`[${new Date().toLocaleString('en-GB', { timeZone: 'Europe/London' })}] Quiz app listening on http://localhost:${port}`);
   });
 }
 
