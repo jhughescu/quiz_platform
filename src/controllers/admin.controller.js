@@ -104,10 +104,15 @@ async function listQuestionBanks(req, res, next) {
   try {
     const isSuperuser = req.user.role === ROLES.SUPERUSER;
     const filter = isSuperuser ? {} : { createdBy: req.user.sub };
+    const [banks, counts] = await Promise.all([
+      questionBankRepository.findAll(filter, { populateOwner: isSuperuser }),
+      questionRepository.countByQuestionBank(),
+    ]);
     res.json(
-      await questionBankRepository.findAll(filter, {
-        populateOwner: isSuperuser,
-      }),
+      banks.map((bank) => ({
+        ...bank.toObject(),
+        questionCount: counts.get(bank._id.toString()) || 0,
+      })),
     );
   } catch (err) {
     next(err);

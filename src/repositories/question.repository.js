@@ -40,4 +40,12 @@ function clearQuestionBank(questionBankId) {
   return Question.updateMany({ questionBank: questionBankId }, { $set: { questionBank: null } });
 }
   
-module.exports = { findAll, findById, findByQuestionBank, create, createMany, updateById, deleteById, clearQuestionBank };
+async function countByQuestionBank() {
+  const rows = await Question.aggregate([
+    { $match: { questionBank: { $ne: null } } },
+    { $group: { _id: '$questionBank', count: { $sum: 1 } } }
+  ]);
+  return new Map(rows.map((row) => [row._id.toString(), row.count]));
+}
+
+module.exports = { findAll, findById, findByQuestionBank, countByQuestionBank, create, createMany, updateById, deleteById, clearQuestionBank };

@@ -73,7 +73,10 @@ export function renderDeploymentQuestionBanks() {
   select.innerHTML =
     '<option value="">Select a question bank</option>' +
     questionBanks
-      .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
+      .map((bank) => {
+        const count = bank.questionCount ?? 0;
+        return `<option value="${bank._id}"${count === 0 ? " disabled" : ""}>${bank.name} (${count} ${count === 1 ? "question" : "questions"})</option>`;
+      })
       .join("");
 }
 function renderQuestionBankOptions() {
