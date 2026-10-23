@@ -11,8 +11,9 @@ export function clearSession() {
   localStorage.removeItem("quizAdminUser");
 }
 export async function apiFetch(path, options = {}, userActivity = false) {
+  console.log("apiFetch activity:", path, userActivity);
   const token = getToken();
-  console.log("apiFetch:", path, token);
+  console.log("apiFetch:", path, "token:", token, "time:", Date.now());
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
@@ -34,6 +35,12 @@ export async function apiFetch(path, options = {}, userActivity = false) {
   }
   const renewedToken = response.headers.get("X-Renewed-Token");
   if (renewedToken) {
+    console.log(
+      "Token renewed by:",
+      path,
+      "different from request token:",
+      renewedToken !== token,
+    );
     localStorage.setItem(TOKEN_KEY, renewedToken);
   }
   return response;

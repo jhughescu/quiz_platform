@@ -29,6 +29,14 @@ const loginError = document.getElementById("login-error");
 const currentUserEl = document.getElementById("current-user");
 const logoutBtn = document.getElementById("logout-btn");
 
+const originalSetItem = localStorage.setItem;
+localStorage.setItem = function (key, value) {
+  if (key === "quizAdminToken") {
+    console.trace("quizAdminToken changed");
+  }
+  return originalSetItem.call(this, key, value);
+};
+
 function showLogin() {
   document.querySelectorAll("dialog[open]").forEach((dialog) => dialog.close());
   loginView.hidden = false;
