@@ -317,7 +317,8 @@ async function exportQuestionBank(req, res, next) {
   } catch (err) {
     next(err);
   }
-}async function exportAllQuestions(req, res, next) {
+}
+async function exportAllQuestions(req, res, next) {
   const questionBanks = await questionBankRepository.findAll();
   const questions = await questionRepository.findAll();
   let str = "";
@@ -346,47 +347,6 @@ async function exportQuestionBank(req, res, next) {
   res.send(str);
 }
 
-async function exportAllQuestionsV1(req, res, next) {
-  const questionBanks = await questionBankRepository.findAll();
-  const questions = await questionRepository.findAll();
-  let str = "";
-  for (const questionBank of questionBanks) {
-    const questionSet = questions.filter(
-      (q) => q.questionBank.toString() === questionBank._id.toString(),
-    );
-    if (questionSet.length > 0) {
-      str += `\n@QuestionBank: ${questionBank.name}\n`;
-      for (const question of questionSet) {
-        str += `\n[${question.type}]\n`;
-        str += `${question.question}\n`;
-        if (
-          question.type === "multiple-choice" ||
-          question.type === "multi-select"
-        ) {
-          const corr =
-            question.type === "multiple-choice"
-              ? [question.correctIndex]
-              : question.correctIndexes;
-          for (const [index, option] of question.options.entries()) {
-            str += `${corr.includes(index) ? "*" : ""}${option}\n`;
-          }
-        }
-        if (question.type === "true-false") {
-          str += `*${question.correctAnswer ? "True" : "False"}\n`;
-        }
-        if (question.type === "short-answer") {
-          str += `*${question.correctAnswer}\n`;
-        }
-      }
-    }
-  }
-  res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    'attachment; filename="question-banks-all-export.txt"',
-  );
-  res.send(str);
-}
 
 async function listSubmissions(req, res, next) {
   try {

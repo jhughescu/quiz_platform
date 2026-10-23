@@ -35,12 +35,14 @@ export async function apiFetch(path, options = {}, userActivity = false) {
   }
   const renewedToken = response.headers.get("X-Renewed-Token");
   if (renewedToken) {
-    console.log(
-      "Token renewed by:",
-      path,
-      "different from request token:",
-      renewedToken !== token,
-    );
+    console.log("Token renewed by:", path);
+    console.log("Renewed token length:", renewedToken.length);
+    console.log("Response URL:", response.url);
+    console.log("Response status:", response.status);
+    console.log("All response headers:");
+    for (const [name, value] of response.headers.entries()) {
+      console.log(name, value);
+    }
     localStorage.setItem(TOKEN_KEY, renewedToken);
   }
   return response;
