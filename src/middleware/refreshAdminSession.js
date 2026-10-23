@@ -1,19 +1,5 @@
 const { issueToken } = require("../services/auth.service");
 function refreshAdminSession(req, res, next) {
-  console.log("### refreshAdminSession EXECUTED ###");
-  console.log(
-    "refreshAdminSession:",
-    req.path,
-    "activity:",
-    req.get("X-User-Activity"),
-  );
-  res.on("finish", () => {
-    console.log(
-      "FINAL RESPONSE HEADER:",
-      req.path,
-      res.getHeader("X-Renewed-Token"),
-    );
-  });
   if (req.get("X-User-Activity") !== "true") {
     return next();
   }
@@ -22,7 +8,6 @@ function refreshAdminSession(req, res, next) {
     email: req.user.email,
     role: req.user.role,
   });
-  console.log("RENEWING TOKEN:", req.path);
   res.setHeader("X-Renewed-Token", token);
   next();
 }

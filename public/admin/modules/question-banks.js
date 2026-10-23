@@ -60,7 +60,6 @@ questionBankForm.addEventListener("submit", async (e) => {
 let questionBanks = [];
 const qQuestionBank = document.getElementById("q-question-bank");
 export async function loadQuestionBanks() {
-  console.log("loadQuestionBanks started", new Date().toISOString());
   const response = await apiFetch("/api/admin/question-banks");
   questionBanks = await response.json();
   renderQuestionBankOptions();

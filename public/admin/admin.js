@@ -31,9 +31,7 @@ const logoutBtn = document.getElementById("logout-btn");
 
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = function (key, value) {
-  if (key === "quizAdminToken") {
-    console.trace("quizAdminToken changed");
-  }
+  
   return originalSetItem.call(this, key, value);
 };
 
@@ -44,7 +42,6 @@ function showLogin() {
 }
 
 function showDashboard() {
-  console.log("showDashboard called", new Date().toISOString());
   loginView.hidden = true;
   dashboardView.hidden = false;
   const user = JSON.parse(localStorage.getItem("quizAdminUser") || "null");
@@ -88,7 +85,6 @@ loginForm.addEventListener("submit", async (e) => {
 
     const data = await res.json();
     setSession(data.token, data.user);
-    console.log("Token immediately after login:", localStorage.getItem("quizAdminToken"));
     showDashboard();
   } catch (err) {
     loginError.textContent = err.message;
@@ -129,7 +125,6 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 const questionGroups = document.getElementById("question-groups");
 
 async function loadQuestions(userActivity = false) {
-  console.log("loadQuestions started", new Date().toISOString());
   const response = await apiFetch("/api/admin/questions", {}, userActivity);
   const questions = await response.json();
   await loadQuestionBanks();
@@ -162,7 +157,6 @@ initNewQuestionButton();
 initQuestionCancelButton();
 initQuestionTypeListener();
 initQuestionForm({ apiFetch, loadQuestions });
-console.log("Initial token exists:", Boolean(getToken()));
 if (getToken()) {
   showDashboard();
 } else {
