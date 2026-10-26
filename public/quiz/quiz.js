@@ -195,7 +195,11 @@ function collectAnswers() {
       }
     } else if (input.type === "radio") {
       if (input.checked) {
-        answers[input.name] = input.value;
+        if (input.dataset.type === "boolean") {
+          answers[input.name] = input.value === "true";
+        } else {
+          answers[input.name] = input.value;
+        }
       }
     } else {
       answers[input.name] = input.value;
