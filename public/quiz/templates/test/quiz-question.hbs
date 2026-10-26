@@ -6,7 +6,7 @@
   <div class="quiz-options">
     {{#each options}}
     <label>
-      <input type="{{#if (equals ../type "multi-select")}}checkbox{{else}}radio{{/if}}" name="{{../id}}" value="{{id}}"
+      <input type="{{#if (equals ../type "multi-select")}}checkbox{{else}}radio{{/if}}" name="{{../id}}" value="{{id}}" {{#if (equals ../type "true-false")}} data-type=boolean{{/if}}
         {{#if ../review}} {{#if (equals ../type "multi-select" )}} 
         {{#if (includes ../correctOptionIds id)}}checked{{/if}}
         {{else}} {{#if (equals id ../correctOptionId)}}checked{{/if}} {{/if}} {{#if (equals
