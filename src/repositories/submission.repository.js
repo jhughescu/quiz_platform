@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Submission = require("../models/Submission");
 
 function create(data) {
@@ -49,8 +50,32 @@ function findAllWithDeployment(ownerId) {
   return Submission.aggregate(pipeline);
 }
 
-function findById(id) {
-  return Submission.findById(id);
+async function findById(id) {
+  const results = await Submission.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id)
+      }
+    },
+    {
+      $lookup: {
+        from: 'deployments',
+        localField: 'deploymentId',
+        foreignField: '_id',
+        as: 'deployment'
+      }
+    },
+    {
+      $unwind: '$deployment'
+    },
+    {
+      $project: {
+        'deployment.questions': 0,
+        'deployment.__v': 0
+      }
+    }
+  ]);
+  return results[0] || null;
 }
 
 function updateById(id, data) {

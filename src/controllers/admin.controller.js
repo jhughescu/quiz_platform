@@ -4,6 +4,7 @@ const submissionRepository = require("../repositories/submission.repository");
 const questionImportService = require("../services/questionImport.service");
 const templateService = require("../services/template.service");
 const presentationService = require("../services/presentation.service");
+const submissionService = require('../services/submission.service');
 const ROLES = require("../constants/roles");
 
 function canModify(question, user) {
@@ -355,7 +356,7 @@ async function exportAllQuestions(req, res, next) {
 
 async function listSubmissions(req, res, next) {
   try {
-    res.json(await submissionRepository.findAll());
+    res.json(await submissionService.listSubmissions(req.user));
   } catch (err) {
     next(err);
   }
@@ -363,7 +364,7 @@ async function listSubmissions(req, res, next) {
 
 async function getSubmission(req, res, next) {
   try {
-    const submission = await submissionRepository.findById(req.params.id);
+    const submission = await submissionService.getSubmission(req.params.id, req.user);
     if (!submission)
       return res.status(404).json({ error: "Submission not found" });
     res.json(submission);

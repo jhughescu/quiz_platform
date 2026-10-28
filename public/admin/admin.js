@@ -28,10 +28,10 @@ const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
 const currentUserEl = document.getElementById("current-user");
 const logoutBtn = document.getElementById("logout-btn");
+const DASHBOARD_VIEW_KEY = "quizAdminDashboardView";
 
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = function (key, value) {
-  
   return originalSetItem.call(this, key, value);
 };
 
@@ -51,14 +51,21 @@ function showDashboard() {
   document.getElementById("users-tab-btn").hidden =
     !user || user.role !== "superuser";
   // Reset to the Questions tab so a previously active tab from a different session doesn't leak through
+  const savedView = sessionStorage.getItem(DASHBOARD_VIEW_KEY);
+  const view = document.querySelector(`.tab-btn[data-tab="${savedView}"]`)
+    ? savedView
+    : "questions";
   document
     .querySelectorAll(".tab-btn")
     .forEach((b) => b.classList.remove("active"));
-  document
-    .querySelector('.tab-btn[data-tab="questions"]')
-    .classList.add("active");
   document.querySelectorAll(".tab-panel").forEach((p) => (p.hidden = true));
-  document.getElementById("questions-tab").hidden = false;
+  document
+    .querySelector(`.tab-btn[data-tab="${view}"]`)
+    .classList.add("active");
+  document.getElementById(`${view}-tab`).hidden = false;
+  if (view === "deployments") {
+    loadDeployments();
+  }
   loadQuestions();
   loadSubmissions();
   if (user && user.role === "superuser") loadUsers();
@@ -105,6 +112,7 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
       .forEach((b) => b.classList.remove("active"));
     document.querySelectorAll(".tab-panel").forEach((p) => (p.hidden = true));
     btn.classList.add("active");
+    sessionStorage.setItem(DASHBOARD_VIEW_KEY, btn.dataset.tab);
     document.getElementById(`${btn.dataset.tab}-tab`).hidden = false;
     if (btn.dataset.tab === "questions") {
       loadQuestions(true);
