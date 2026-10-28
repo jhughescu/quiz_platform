@@ -73,128 +73,7 @@
           </div>
           <div id="question-groups"></div>
 
-          <dialog id="import-dialog">
-            <form id="import-form">
-              <h3>Bulk Import Questions</h3>
-              <label
-                >Question bank
-                <select id="import-question-bank"></select>
-              </label>
-              <label
-                >Upload .txt file
-                <input type="file" id="import-file" accept=".txt,text/plain" />
-              </label>
-              <label
-                >Import text
-                <textarea
-                  id="import-text"
-                  rows="14"
-                  placeholder="[MultipleChoice]&#10;What is the capital of France?&#10;*Paris&#10;London&#10;Berlin&#10;Madrid"
-                ></textarea>
-              </label>
-              <p class="hint">
-                Blocks start with a <code>[MultipleChoice]</code>,
-                <code>[TrueFalse]</code>, <code>[MultiSelect]</code>, or
-                <code>[ShortAnswer]</code> header, followed by the question and
-                its options/answers. Prefix correct answers with <code>*</code>.
-                Optionally add <code>@QuestionBank: bank name</code> on its own
-                line before a block to assign it and every following block to
-                that bank (until a new <code>@QuestionBank:</code> line
-                appears), or directly after a block's answers to assign just
-                that one question (overrides both the batch value and the
-                dropdown above). Bank names that don't exist yet are created
-                automatically.
-              </p>
-              <p id="import-form-error" class="error"></p>
-              <ul id="import-form-details" class="error"></ul>
-              <div class="dialog-actions">
-                <button type="button" id="import-cancel-btn">Cancel</button>
-                <button type="submit">Import</button>
-              </div>
-            </form>
-          </dialog>
-
-          <dialog id="question-dialog">
-            <form id="question-form">
-              <h3 id="question-form-title">New Question</h3>
-              <label
-                >Type
-                <select id="q-type" required>
-                  <option value="multiple-choice">Multiple choice</option>
-                  <option value="true-false">True / False</option>
-                  <option value="multi-select">Multi-select</option>
-                  <option value="short-answer">Short answer</option>
-                </select>
-              </label>
-              <label
-                >Question text <input type="text" id="q-text" required
-              /></label>
-              <label
-                >Question bank
-                <select id="q-question-bank"></select>
-              </label>
-
-              <div id="q-options-field" class="type-field">
-                <label>Options (one per line)</label>
-                <textarea id="q-options" rows="4"></textarea>
-                <label
-                  >Correct index (multiple-choice)
-                  <input type="number" id="q-correct-index" min="0"
-                /></label>
-                <label
-                  >Correct indexes, comma-separated (multi-select)
-                  <input type="text" id="q-correct-indexes"
-                /></label>
-              </div>
-
-              <div id="q-true-false-field" class="type-field">
-                <label
-                  >Correct answer
-                  <select id="q-correct-boolean">
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                  </select>
-                </label>
-              </div>
-
-              <div id="q-short-answer-field" class="type-field">
-                <label
-                  >Correct answer <input type="text" id="q-correct-text"
-                /></label>
-                <label
-                  ><input type="checkbox" id="q-case-sensitive" /> Case
-                  sensitive</label
-                >
-              </div>
-
-              <p id="question-form-error" class="error"></p>
-              <div class="dialog-actions">
-                <button type="button" id="question-cancel-btn">Cancel</button>
-                <button type="submit">Save</button>
-              </div>
-            </form>
-          </dialog>
-
-          <dialog id="question-bank-dialog">
-            <form id="question-bank-form">
-              <h3 id="question-bank-form-title">New Question Bank</h3>
-              <label
-                >Name
-                <input
-                  type="text"
-                  id="question-bank-name"
-                  maxlength="100"
-                  required
-              /></label>
-              <p id="question-bank-form-error" class="error"></p>
-              <div class="dialog-actions">
-                <button type="button" id="question-bank-cancel-btn">
-                  Cancel
-                </button>
-                <button type="submit">Save</button>
-              </div>
-            </form>
-          </dialog>
+          <div id="question-dialogs-container"></div>
         </section>
 
         <section id="deployments-tab" class="tab-panel" hidden>
@@ -271,19 +150,7 @@
           </dialog>
         </section>
 
-        <section id="submissions-tab" class="tab-panel" hidden>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Deployment</th>
-                <th>Status</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody id="submissions-table-body"></tbody>
-          </table>
-        </section>
+        <div id="submissions-container"></div>
 
         <div id="submission-detail-container"></div>
 
@@ -325,6 +192,6 @@
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
-    <script type="module" src="admin.js"></script>
+    <script type="module" src="admin-bootstrap.js"></script>
   </body>
 </html>
