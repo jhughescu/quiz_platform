@@ -2,25 +2,31 @@ import { apiFetch } from "./api.js";
 import { renderTemplate } from "../../js/template.js";
 import { resetAdminTimeout } from "./session.js";
 
+async function renderSelectPlaceholder(label) {
+  return renderTemplate("/admin/templates/select-placeholder.hbs", { label });
+}
+
 export function initDeployments({ renderDeploymentQuestionBanks }) {
   document
     .getElementById("new-deployment-btn")
     .addEventListener("click", async () => {
       document.getElementById("deployment-form").reset();
       document.getElementById("deployment-form-error").textContent = "";
-      renderDeploymentQuestionBanks();
+      await renderDeploymentQuestionBanks();
       await loadTemplates();
       await loadPresentations();
       document.getElementById("deployment-dialog").showModal();
     });
   document
     .getElementById("deployment-template")
-    .addEventListener("change", () => {
+    .addEventListener("change", async () => {
       const templateSelect = document.getElementById("deployment-template");
       const versionSelect = document.getElementById(
         "deployment-template-version",
       );
-      versionSelect.innerHTML = '<option value="">Select a version</option>';
+      // templateSelect.innerHTML = await renderSelectPlaceholder("template");
+      versionSelect.innerHTML = await renderSelectPlaceholder("version");
+
       const selectedOption = templateSelect.selectedOptions[0];
       if (!selectedOption || !selectedOption.dataset.version) return;
       const option = document.createElement("option");
@@ -166,8 +172,9 @@ export async function loadTemplates() {
   const templates = await response.json();
   const templateSelect = document.getElementById("deployment-template");
   const versionSelect = document.getElementById("deployment-template-version");
-  templateSelect.innerHTML = '<option value="">Select a template</option>';
-  versionSelect.innerHTML = '<option value="">Select a version</option>';
+
+  templateSelect.innerHTML = await renderSelectPlaceholder("template");
+  versionSelect.innerHTML = await renderSelectPlaceholder("version");
   templates.forEach((template) => {
     const option = document.createElement("option");
     option.value = template.id;
@@ -183,7 +190,7 @@ export async function loadPresentations() {
   }
   const presentations = await response.json();
   const select = document.getElementById("deployment-presentation");
-  select.innerHTML = '<option value="">Select a presentation</option>';
+  select.innerHTML = await renderSelectPlaceholder("presentation");
   presentations.forEach((presentation) => {
     const option = document.createElement("option");
     option.value = presentation.id;

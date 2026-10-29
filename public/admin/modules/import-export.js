@@ -1,4 +1,5 @@
 import { apiFetch } from "./api.js";
+import { renderTemplate } from "../../js/template.js";
 import { resetAdminTimeout } from "./session.js";
 
 const exportButtonFull = document.getElementById("export-questions-btn");
@@ -32,7 +33,11 @@ export function initExportAllQuestions() {
 }
 export async function exportQuestionBank(bankId) {
   resetAdminTimeout();
-  const res = await apiFetch(`/api/admin/export-question-bank/${bankId}`, {}, true);
+  const res = await apiFetch(
+    `/api/admin/export-question-bank/${bankId}`,
+    {},
+    true,
+  );
   if (!res.ok) {
     throw new Error(`Export failed: ${res.status}`);
   }
@@ -61,15 +66,14 @@ export async function exportQuestionBank(bankId) {
 export function initImport({ loadQuestions, getQuestionBanks }) {
   document
     .getElementById("import-questions-btn")
-    .addEventListener("click", () => {
+    .addEventListener("click", async () => {
       importForm.reset();
       importFormError.textContent = "";
       importFormDetails.innerHTML = "";
-      importQuestionBank.innerHTML =
-        '<option value="">Unbanked</option>' +
-        getQuestionBanks()
-          .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
-          .join("");
+      importQuestionBank.innerHTML = await renderTemplate(
+        "/admin/templates/import-question-bank-options.hbs",
+        { questionBanks: getQuestionBanks() },
+      );
       importDialog.showModal();
     });
   importFile.addEventListener("change", async () => {
@@ -96,16 +100,21 @@ export function initImport({ loadQuestions, getQuestionBanks }) {
       questionBank: importQuestionBank.value || null,
     };
     try {
-      const res = await apiFetch("/api/admin/questions/import", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }, true);
+      const res = await apiFetch(
+        "/api/admin/questions/import",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+        true,
+      );
       const data = await res.json();
       if (!res.ok) {
         importFormError.textContent = data.error || "Import failed";
-        importFormDetails.innerHTML = (data.details || [])
-          .map((d) => `<li>${d}</li>`)
-          .join("");
+        importFormDetails.innerHTML = await renderTemplate(
+          "/admin/templates/import-error-details.hbs",
+          { details: data.details || [] },
+        );
         return;
       }
       importDialog.close();

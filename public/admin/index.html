@@ -11,25 +11,7 @@
     <main class="container admin-container">
       <h1>Quiz Admin</h1>
 
-      <section id="login-view">
-        <h2>Log in</h2>
-        <form id="login-form">
-          <label
-            >Email
-            <input type="email" id="login-email" autocomplete="email" required
-          /></label>
-          <label
-            >Password
-            <input
-              type="password"
-              id="login-password"
-              autocomplete="current-password"
-              required
-          /></label>
-          <button type="submit">Log in</button>
-        </form>
-        <p id="login-error" class="error"></p>
-      </section>
+      <div id="login-container"></div>
 
       <section id="dashboard-view" hidden>
         <div class="dashboard-header">
@@ -58,137 +40,11 @@
           </button>
         </nav>
 
-        <section id="questions-tab" class="tab-panel">
-          <div class="question-actions">
-            <button id="new-question-btn" type="button">+ New Question</button>
-            <button id="new-question-bank-btn" type="button">
-              + New Question Bank
-            </button>
-            <button id="import-questions-btn" type="button">
-              Import Questions
-            </button>
-            <button id="export-questions-btn" type="button">
-              Export Questions
-            </button>
-          </div>
-          <div id="question-groups"></div>
-
-          <div id="question-dialogs-container"></div>
-        </section>
-
-        <section id="deployments-tab" class="tab-panel" hidden>
-          <div class="deployment-actions">
-            <button id="new-deployment-btn" type="button">
-              + New Deployment
-            </button>
-          </div>
-
-          <div id="deployments-container">
-            <p>Loading deployments...</p>
-          </div>
-
-          <dialog id="deployment-dialog">
-            <form id="deployment-form">
-              <h3>New Deployment</h3>
-
-              <label>
-                Name
-                <input type="text" id="deployment-name" required />
-              </label>
-
-              <label>
-                Question bank
-                <select id="deployment-question-bank" required></select>
-              </label>
-              <label>
-                Template
-                <select id="deployment-template" required>
-                  <option value="">Select a template</option>
-                </select>
-              </label>
-              <label>
-                Template version
-                <select id="deployment-template-version" required>
-                  <option value="">Select a version</option>
-                </select>
-              </label>
-              <label>
-                Presentation
-                <select id="deployment-presentation" required>
-                  <option value="">Select a presentation</option>
-                </select>
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" id="deployment-randomise-options" />
-                Randomise answer options
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" id="deployment-randomise-questions" />
-                Randomise questions
-              </label>
-
-              <p id="deployment-form-error" class="error"></p>
-
-              <div class="dialog-actions">
-                <button type="button" id="deployment-cancel-btn">Cancel</button>
-                <button type="submit">Create</button>
-              </div>
-            </form>
-          </dialog>
-          <dialog id="deployment-details-dialog">
-            <h3 id="deployment-details-name"></h3>
-
-            <div id="deployment-details-content">
-              <p>Loading deployment details...</p>
-            </div>
-
-            <div class="dialog-actions">
-              <button type="button" id="deployment-details-close-btn">
-                Close
-              </button>
-            </div>
-          </dialog>
-        </section>
-
+        <div id="questions-section-container"></div>
+        <div id="deployments-section-container"></div>
         <div id="submissions-container"></div>
-
-        <div id="submission-detail-container"></div>
-
-        <section id="users-tab" class="tab-panel" hidden>
-          <button id="new-user-btn" type="button">+ New User</button>
-          <div id="users-table-container"></div>
-
-          <dialog id="user-dialog">
-            <form id="user-form">
-              <h3>New User</h3>
-              <label
-                >Email
-                <input type="email" id="u-email" autocomplete="email" required
-              /></label>
-              <label
-                >Password
-                <input
-                  type="password"
-                  id="u-password"
-                  minlength="8"
-                  autocomplete="new-password"
-                  required
-              /></label>
-              <label
-                >Role
-                <select id="u-role" required>
-                  <option value="admin">Admin</option>
-                  <option value="superuser">Superuser</option>
-                </select>
-              </label>
-              <p id="user-form-error" class="error"></p>
-              <div class="dialog-actions">
-                <button type="button" id="user-cancel-btn">Cancel</button>
-                <button type="submit">Create</button>
-              </div>
-            </form>
-          </dialog>
-        </section>
+        <div id="users-container"></div>
+        
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>

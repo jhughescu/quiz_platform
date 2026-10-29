@@ -1,0 +1,73 @@
+<section id="deployments-tab" class="tab-panel" hidden>
+  <div class="deployment-actions">
+    <button id="new-deployment-btn" type="button">
+      + New Deployment
+    </button>
+  </div>
+
+  <div id="deployments-container">
+    <p>Loading deployments...</p>
+  </div>
+
+  <dialog id="deployment-dialog">
+    <form id="deployment-form">
+      <h3>New Deployment</h3>
+
+      <label>
+        Name
+        <input type="text" id="deployment-name" required />
+      </label>
+
+      <label>
+        Question bank
+        <select id="deployment-question-bank" required></select>
+      </label>
+      <label>
+        Template
+        <select id="deployment-template" required>
+          <option value="">Select a template</option>
+        </select>
+      </label>
+      <label>
+        Template version
+        <select id="deployment-template-version" required>
+          <option value="">Select a version</option>
+        </select>
+      </label>
+      <label>
+        Presentation
+        <select id="deployment-presentation" required>
+          <option value="">Select a presentation</option>
+        </select>
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="deployment-randomise-options" />
+        Randomise answer options
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="deployment-randomise-questions" />
+        Randomise questions
+      </label>
+
+      <p id="deployment-form-error" class="error"></p>
+
+      <div class="dialog-actions">
+        <button type="button" id="deployment-cancel-btn">Cancel</button>
+        <button type="submit">Create</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="deployment-details-dialog">
+    <h3 id="deployment-details-name"></h3>
+
+    <div id="deployment-details-content">
+      <p>Loading deployment details...</p>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" id="deployment-details-close-btn">
+        Close
+      </button>
+    </div>
+  </dialog>
+</section>

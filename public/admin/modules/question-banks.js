@@ -1,4 +1,5 @@
 import { apiFetch } from "./api.js";
+import { renderTemplate } from "../../js/template.js";
 import { resetAdminTimeout } from "./session.js";
 
 const questionBankDialog = document.getElementById("question-bank-dialog");
@@ -67,24 +68,24 @@ export async function loadQuestionBanks() {
 export function getQuestionBanks() {
   return questionBanks;
 }
-export function renderDeploymentQuestionBanks() {
+export async function renderDeploymentQuestionBanks() {
   const select = document.getElementById("deployment-question-bank");
   if (!select) return;
-  select.innerHTML =
-    '<option value="">Select a question bank</option>' +
-    questionBanks
-      .map((bank) => {
-        const count = bank.questionCount ?? 0;
-        return `<option value="${bank._id}"${count === 0 ? " disabled" : ""}>${bank.name} (${count} ${count === 1 ? "question" : "questions"})</option>`;
-      })
-      .join("");
+  select.innerHTML = await renderTemplate(
+    "/admin/templates/deployment-question-bank-options.hbs",
+    {
+      questionBanks: questionBanks.map((bank) => ({
+        ...bank,
+        questionCount: bank.questionCount ?? 0,
+      })),
+    },
+  );
 }
-function renderQuestionBankOptions() {
-  qQuestionBank.innerHTML =
-    '<option value="">Unbanked</option>' +
-    questionBanks
-      .map((bank) => `<option value="${bank._id}">${bank.name}</option>`)
-      .join("");
+async function renderQuestionBankOptions() {
+  qQuestionBank.innerHTML = await renderTemplate(
+    "/admin/templates/question-bank-options.hbs",
+    { questionBanks },
+  );
 }
 export async function deleteQuestionBank(id, loadQuestions) {
   if (

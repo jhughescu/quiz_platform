@@ -1,0 +1,4 @@
+<option value="">Select a question bank</option>
+{{#each questionBanks}}
+<option value="{{_id}}"{{#unless questionCount}} disabled{{/unless}}>{{name}} ({{questionCount}} {{#if (equals questionCount 1)}}question{{else}}questions{{/if}})</option>
+{{/each}}

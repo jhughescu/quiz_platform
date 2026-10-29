@@ -1,0 +1,36 @@
+<section id="users-tab" class="tab-panel" hidden>
+  <button id="new-user-btn" type="button">+ New User</button>
+  <div id="users-table-container"></div>
+
+  <dialog id="user-dialog">
+    <form id="user-form">
+      <h3>New User</h3>
+      <label>Email
+        <input
+          type="email"
+          id="u-email"
+          autocomplete="email"
+          required
+        /></label>
+      <label>Password
+        <input
+          type="password"
+          id="u-password"
+          minlength="6"
+          autocomplete="new-password"
+          required
+        /></label>
+      <label>Role
+        <select id="u-role" required>
+          <option value="admin">Admin</option>
+          <option value="superuser">Superuser</option>
+        </select>
+      </label>
+      <p id="user-form-error" class="error"></p>
+      <div class="dialog-actions">
+        <button type="button" id="user-cancel-btn">Cancel</button>
+        <button type="submit">Create</button>
+      </div>
+    </form>
+  </dialog>
+</section>

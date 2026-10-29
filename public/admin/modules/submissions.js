@@ -17,7 +17,6 @@ export async function loadSubmissions(userActivity = false) {
   await submissionDetailReady;
   const res = await apiFetch("/api/admin/submissions", {}, userActivity);
   const submissions = await res.json();
-  console.log("SUBMISSIONS:", submissions);
   const displaySubmissions = submissions.map((s) => ({
     ...s,
     displayDate: new Date(s.completedAt || s.createdAt).toLocaleString(),
