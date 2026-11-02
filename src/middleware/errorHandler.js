@@ -2,7 +2,8 @@ function errorHandler(err, req, res, next) {
   console.error(err);
   if (
   err.message === 'Question already submitted' ||
-  err.message === 'Deployment references an invalid template'
+  err.message === 'Deployment references an invalid template' ||
+  err.message === 'Deployment references an invalid presentation'
 ) {
   return res.status(409).json({ error: err.message });
 }

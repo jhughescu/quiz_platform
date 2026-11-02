@@ -3,6 +3,7 @@ const submissionRepository = require("../repositories/submission.repository");
 const { QUESTION_TYPES } = require("../models/Question");
 const Deployment = require("../models/Deployment");
 const templates = require("../config/templates");
+const presentations = require("../config/presentations");
 
 // Strip whichever field holds the correct answer, based on question type
 function sanitizeQuestion(q) {
@@ -216,6 +217,13 @@ async function getActiveDeployment(id, includeAnswers = false) {
   const template = templates[deployment.template?.id];
   if (!template || template.version !== deployment.template?.version) {
     throw new Error("Deployment references an invalid template");
+  }
+  const presentation = presentations[deployment.presentation?.id];
+  if (
+    !presentation ||
+    presentation.version !== deployment.presentation?.version
+  ) {
+    throw new Error("Deployment references an invalid presentation");
   }
   return {
     id: deployment._id,
