@@ -1,0 +1,7 @@
+{
+  "name": "One at a time",
+  "version": "1.0",
+  "mode": "single",
+  "navigation": true,
+  "progress": true
+}
