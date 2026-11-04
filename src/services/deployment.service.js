@@ -22,6 +22,11 @@ async function createDeployment({
     throw new Error("You do not have permission to deploy this question bank");
   }
   const questions = await questionRepository.findByQuestionBank(questionBankId);
+  if (presentation.id === "one-at-a-time" && questions.length === 1) {
+    throw new Error(
+      "A one-at-a-time deployment must contain at least two questions",
+    );
+  }
   const questionSnapshot = createQuestionSnapshot(questions);
   const deployment = await Deployment.create({
     name,
