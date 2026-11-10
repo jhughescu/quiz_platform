@@ -54,6 +54,7 @@ function createQuestionSnapshot(questions) {
       id: `q_${new mongoose.Types.ObjectId().toString()}`,
       type: question.type,
       question: question.question,
+      image: question.image || undefined,
     };
     if (question.type === "multiple-choice") {
       snapshot.options = question.options.map((text) => ({

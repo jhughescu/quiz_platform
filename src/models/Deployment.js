@@ -28,6 +28,10 @@ const deploymentQuestionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Image",
+    },
     options: {
       type: [deploymentOptionSchema],
       default: undefined,
