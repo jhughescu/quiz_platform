@@ -4,7 +4,9 @@ const submissionRepository = require("../repositories/submission.repository");
 const questionImportService = require("../services/questionImport.service");
 const templateService = require("../services/template.service");
 const presentationService = require("../services/presentation.service");
-const submissionService = require('../services/submission.service');
+const submissionService = require("../services/submission.service");
+const Image = require("../models/Image");
+const imageStorageService = require("../services/imageStorage.service");
 const ROLES = require("../constants/roles");
 
 function canModify(question, user) {
@@ -49,8 +51,27 @@ async function listQuestions(req, res, next) {
   }
 }
 
+async function validateImageReference(imageId, user) {
+  if (!imageId) return null;
+  const image = await Image.findById(imageId).select("uploadedBy");
+  if (!image) return "Image not found";
+  if (
+    user.role !== ROLES.SUPERUSER &&
+    image.uploadedBy.toString() !== user.sub
+  ) {
+    return "Forbidden";
+  }
+  return null;
+}
+
 async function createQuestion(req, res, next) {
   try {
+    const imageError = await validateImageReference(req.body.image, req.user);
+    if (imageError) {
+      return res
+        .status(imageError === "Forbidden" ? 403 : 404)
+        .json({ error: imageError });
+    }
     const bankError = await validateQuestionBank(
       req.body.questionBank,
       req.user,
@@ -81,6 +102,12 @@ async function updateQuestion(req, res, next) {
         error:
           "Question type cannot be changed. Delete the question and create a new one.",
       });
+    }
+    const imageError = await validateImageReference(req.body.image, req.user);
+    if (imageError) {
+      return res
+        .status(imageError === "Forbidden" ? 403 : 404)
+        .json({ error: imageError });
     }
     const bankError = await validateQuestionBank(
       req.body.questionBank,
@@ -336,7 +363,9 @@ async function exportAllQuestions(req, res, next) {
   }
   for (const questionBank of questionBanks) {
     const questionSet = questions.filter(
-      (q) => q.questionBank && q.questionBank.toString() === questionBank._id.toString(),
+      (q) =>
+        q.questionBank &&
+        q.questionBank.toString() === questionBank._id.toString(),
     );
     if (questionSet.length > 0) {
       str += `\n@QuestionBank: ${questionBank.name}\n`;
@@ -353,6 +382,39 @@ async function exportAllQuestions(req, res, next) {
   res.send(str);
 }
 
+async function uploadImage(req, res, next) {
+  let storageKey;
+  try {
+    storageKey = await imageStorageService.save(
+      req.file.buffer,
+      req.file.mimetype,
+    );
+    const image = await Image.create({
+      storageKey,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      uploadedBy: req.user.sub,
+    });
+    res.status(201).json({
+      id: image._id,
+      mimeType: image.mimeType,
+      size: image.size,
+    });
+  } catch (err) {
+    if (storageKey) {
+      try {
+        await imageStorageService.remove(storageKey);
+      } catch (cleanupError) {
+        console.error(
+          "Failed to remove image after upload error:",
+          cleanupError,
+        );
+      }
+    }
+    next(err);
+  }
+}
 
 async function listSubmissions(req, res, next) {
   try {
@@ -364,7 +426,10 @@ async function listSubmissions(req, res, next) {
 
 async function getSubmission(req, res, next) {
   try {
-    const submission = await submissionService.getSubmission(req.params.id, req.user);
+    const submission = await submissionService.getSubmission(
+      req.params.id,
+      req.user,
+    );
     if (!submission)
       return res.status(404).json({ error: "Submission not found" });
     res.json(submission);
@@ -389,4 +454,5 @@ module.exports = {
   getSubmission,
   getTemplates,
   getPresentations,
+  uploadImage,
 };

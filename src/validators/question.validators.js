@@ -7,6 +7,7 @@ const questionSchema = Joi.object({
   type: Joi.string().valid(...TYPES).required(),
   question: Joi.string().trim().min(1).required(),
   questionBank: Joi.string().hex().length(24).allow(null).optional(),
+  image: Joi.string().hex().length(24).allow(null).optional(),
 
   options: Joi.array()
     .items(Joi.string().trim().min(1))

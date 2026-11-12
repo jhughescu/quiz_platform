@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const userRoutes = require('./routes/user.routes');
 const deploymentRoutes = require('./routes/deployment.routes');
+const imageRoutes = require('./routes/image.routes');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -16,6 +17,7 @@ app.use('/api', quizRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/users', userRoutes);
+app.use('/api/images', imageRoutes);
 // app.use('/api/admin/deployments', deploymentRoutes);
 app.use(errorHandler);
 

@@ -6,6 +6,8 @@ const authorize = require('../middleware/authorize');
 const { validateBody } = require('../middleware/validate');
 const validateObjectId = require('../middleware/validateObjectId');
 const refreshAdminSession = require('../middleware/refreshAdminSession');
+const uploadImageMiddleware = require('../middleware/uploadImage');
+const validateImage = require('../middleware/validateImage');
 const { questionSchema, questionImportSchema } = require('../validators/question.validators');
 const { questionBankSchema } = require('../validators/questionBank.validators');
 const { deploymentSchema } = require('../validators/deployment.validators');
@@ -15,6 +17,7 @@ const router = express.Router();
 
 router.use(authenticate, authorize(ROLES.ADMIN, ROLES.SUPERUSER));
 
+router.post('/images', refreshAdminSession, uploadImageMiddleware, validateImage, adminController.uploadImage);
 router.get('/export-all-questions', refreshAdminSession, adminController.exportAllQuestions);
 router.get('/export-question-bank/:id', refreshAdminSession, adminController.exportQuestionBank);
 router.get('/questions', refreshAdminSession, adminController.listQuestions);
