@@ -7,6 +7,7 @@ const presentationService = require("../services/presentation.service");
 const submissionService = require("../services/submission.service");
 const Image = require("../models/Image");
 const imageStorageService = require("../services/imageStorage.service");
+const imageCleanupService = require("../services/imageCleanup.service");
 const ROLES = require("../constants/roles");
 
 function canModify(question, user) {
@@ -122,6 +123,13 @@ async function updateQuestion(req, res, next) {
       req.params.id,
       req.body,
     );
+    if (
+      existing.image &&
+      Object.prototype.hasOwnProperty.call(req.body, "image") &&
+      String(existing.image) !== String(req.body.image || "")
+    ) {
+      await imageCleanupService.deleteImageIfUnused(existing.image);
+    }
     res.json(question);
   } catch (err) {
     next(err);
@@ -197,6 +205,9 @@ async function deleteQuestion(req, res, next) {
       return res.status(403).json({ error: "Forbidden" });
 
     await questionRepository.deleteById(req.params.id);
+    if (existing.image) {
+      await imageCleanupService.deleteImageIfUnused(existing.image);
+    }
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -415,6 +426,19 @@ async function uploadImage(req, res, next) {
     next(err);
   }
 }
+async function cleanupOrphanedImages(req, res, next) {
+  try {
+    if (req.user.role !== ROLES.SUPERUSER) {
+      return res.status(403).json({
+        error: "You do not have permission to run image cleanup",
+      });
+    }
+    const result = await imageCleanupService.cleanupOrphanedImages();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
 
 async function listSubmissions(req, res, next) {
   try {
@@ -455,4 +479,5 @@ module.exports = {
   getTemplates,
   getPresentations,
   uploadImage,
+  cleanupOrphanedImages,
 };

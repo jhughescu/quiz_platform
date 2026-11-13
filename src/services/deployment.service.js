@@ -4,6 +4,7 @@ const QuestionBank = require("../models/QuestionBank");
 const questionRepository = require("../repositories/question.repository");
 const deploymentRepository = require("../repositories/deployment.repository");
 const presentations = require("../config/presentations");
+const imageCleanupService = require("./imageCleanup.service");
 
 async function createDeployment({
   name,
@@ -134,6 +135,17 @@ async function deleteDeployment(id, user) {
     throw new Error("You do not have permission to delete this deployment");
   }
   await deploymentRepository.deleteById(id);
+  const imageIds = new Set(
+    deployment.questions
+      .map((question) => question.image)
+      .filter(Boolean)
+      .map((imageId) => imageId.toString()),
+  );
+  await Promise.all(
+    [...imageIds].map((imageId) =>
+      imageCleanupService.deleteImageIfUnused(imageId),
+    ),
+  );
   return deployment;
 }
 
