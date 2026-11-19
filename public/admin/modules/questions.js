@@ -3,6 +3,9 @@ import { resetAdminTimeout } from "./session.js";
 
 let editingQuestionId = null;
 let qType = document.getElementById("q-type");
+let selectedImageFile = null;
+let imagePreviewUrl = null;
+let existingImageId = null;
 
 export function initNewQuestionButton() {
   const questionDialog = document.getElementById("question-dialog");
@@ -14,19 +17,37 @@ export function initNewQuestionButton() {
     qType.disabled = false;
     questionFormTitle.textContent = "New Question";
     questionForm.reset();
+    selectedImageFile = null;
+    existingImageId = null;
+    updateImagePreview(null);
     updateTypeFields();
     questionFormError.textContent = "";
     questionDialog.showModal();
   });
+  document.getElementById("q-image").addEventListener("change", (e) => {
+    const file = e.target.files[0] || null;
+    updateImagePreview(file);
+  });
+  document
+    .getElementById("q-image-remove-btn")
+    .addEventListener("click", () => {
+      document.getElementById("q-image").value = "";
+      existingImageId = null;
+      updateImagePreview(null);
+    });
 }
 export function initQuestionCancelButton() {
   const questionDialog = document.getElementById("question-dialog");
-  document.getElementById("question-cancel-btn").addEventListener("click", () => {
-    questionDialog.close();
-  });
+  document
+    .getElementById("question-cancel-btn")
+    .addEventListener("click", () => {
+      questionDialog.close();
+    });
 }
 export function initQuestionTypeListener() {
-  document.getElementById("q-type").addEventListener("change", updateTypeFields);
+  document
+    .getElementById("q-type")
+    .addEventListener("change", updateTypeFields);
 }
 export function initQuestionForm({ apiFetch, loadQuestions }) {
   const questionForm = document.getElementById("question-form");
@@ -36,13 +57,33 @@ export function initQuestionForm({ apiFetch, loadQuestions }) {
     e.preventDefault();
     questionFormError.textContent = "";
     const payload = buildQuestionPayload();
+    if (selectedImageFile) {
+      const formData = new FormData();
+      formData.append("image", selectedImageFile);
+      const uploadRes = await apiFetch(
+        "/api/admin/images",
+        { method: "POST", body: formData },
+        true,
+      );
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.error || "Image upload failed");
+      }
+      payload.image = uploadData.id;
+    } else {
+      payload.image = existingImageId;
+    }
     const editingQuestionId = getEditingQuestionId();
     const path = editingQuestionId
       ? `/api/admin/questions/${editingQuestionId}`
       : "/api/admin/questions";
     const method = editingQuestionId ? "PUT" : "POST";
     try {
-      const res = await apiFetch(path, { method, body: JSON.stringify(payload) }, true);
+      const res = await apiFetch(
+        path,
+        { method, body: JSON.stringify(payload) },
+        true,
+      );
       const data = await res.json();
       if (!res.ok) {
         throw new Error(
@@ -78,8 +119,44 @@ export function updateTypeFields() {
     .getElementById("q-short-answer-field")
     .classList.toggle("active", type === "short-answer");
 }
+function updateImagePreview(file) {
+  const previewContainer = document.getElementById("q-image-preview-container");
+  const preview = document.getElementById("q-image-preview");
+  if (imagePreviewUrl) {
+    URL.revokeObjectURL(imagePreviewUrl);
+    imagePreviewUrl = null;
+  }
+  selectedImageFile = file;
+  if (!file) {
+    preview.removeAttribute("src");
+    previewContainer.hidden = true;
+    return;
+  }
+  imagePreviewUrl = URL.createObjectURL(file);
+  preview.src = imagePreviewUrl;
+  previewContainer.hidden = false;
+}
+function displayExistingImage(imageId) {
+  const previewContainer = document.getElementById("q-image-preview-container");
+  const preview = document.getElementById("q-image-preview");
+  if (imagePreviewUrl) {
+    URL.revokeObjectURL(imagePreviewUrl);
+    imagePreviewUrl = null;
+  }
+  selectedImageFile = null;
+  if (!imageId) {
+    preview.removeAttribute("src");
+    previewContainer.hidden = true;
+    return;
+  }
+  preview.src = `/api/images/${imageId}`;
+  previewContainer.hidden = false;
+}
 export function openEditDialog(question) {
   editingQuestionId = question._id;
+  existingImageId = question.image?._id || question.image || null;
+  document.getElementById("q-image").value = "";
+  displayExistingImage(existingImageId);
   const questionDialog = document.getElementById("question-dialog");
   const questionFormTitle = document.getElementById("question-form-title");
   const questionFormError = document.getElementById("question-form-error");

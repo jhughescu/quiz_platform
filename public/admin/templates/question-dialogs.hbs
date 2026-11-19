@@ -55,7 +55,15 @@
     <label>Question bank
       <select id="q-question-bank"></select>
     </label>
-
+<div id="q-image-field">
+  <label>Question image
+    <input type="file" id="q-image" accept="image/jpeg,image/png,image/webp" />
+  </label>
+  <div id="q-image-preview-container" hidden>
+    <img id="q-image-preview" alt="Question image preview" />
+    <button type="button" id="q-image-remove-btn">Remove image</button>
+  </div>
+</div>
     <div id="q-options-field" class="type-field">
       <label>Options (one per line)</label>
       <textarea id="q-options" rows="4"></textarea>
@@ -87,6 +95,8 @@
     </div>
   </form>
 </dialog>
+
+
 
 <dialog id="question-bank-dialog">
   <form id="question-bank-form">

@@ -13,9 +13,11 @@ export function clearSession() {
 export async function apiFetch(path, options = {}, userActivity = false) {
   const token = getToken();
   const headers = {
-    "Content-Type": "application/json",
     ...(options.headers || {}),
   };
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
   if (userActivity) {
     headers["X-User-Activity"] = "true";
   }
