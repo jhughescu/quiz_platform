@@ -54,6 +54,7 @@ export function initDeployments({ renderDeploymentQuestionBanks }) {
 
       const payload = {
         name: document.getElementById("deployment-name").value.trim(),
+        language: document.getElementById("deployment-language").value,
         questionBankId: document.getElementById("deployment-question-bank")
           .value,
         template: {
@@ -126,6 +127,33 @@ export async function loadDeployments(userActivity = false) {
         .addEventListener("click", async () => {
           viewDeployment(deployment._id);
         });
+      item
+        .querySelector(".deployment-delete-btn")
+        .addEventListener("click", async () => {
+          if (
+            !confirm(
+              `Are you sure you wish to delete deployment "${deployment.name}"?`,
+            )
+          )
+            return;
+          try {
+            const response = await apiFetch(
+              `/api/admin/deployments/${deployment._id}`,
+              { method: "DELETE" },
+              true,
+            );
+            if (!response.ok) {
+              const data = await response.json();
+              throw new Error(data.error || "Failed to delete deployment");
+            }
+            resetAdminTimeout();
+            await loadDeployments();
+          } catch (err) {
+            console.error("Deployment deletion failed:", err);
+            alert(err.message || "Failed to delete deployment");
+          }
+        });
+      container.appendChild(item);
       container.appendChild(item);
     }
   } catch (err) {
@@ -182,6 +210,8 @@ export async function loadTemplates() {
     option.dataset.version = template.version;
     templateSelect.appendChild(option);
   });
+  templateSelect.value = "default";
+  templateSelect.dispatchEvent(new Event("change"));
 }
 export async function loadPresentations() {
   const response = await apiFetch("/api/admin/presentations");
@@ -197,4 +227,5 @@ export async function loadPresentations() {
     option.textContent = presentation.name;
     select.appendChild(option);
   });
+  select.value = "default";
 }

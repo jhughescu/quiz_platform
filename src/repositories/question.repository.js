@@ -39,7 +39,11 @@ function deleteById(id) {
 function clearQuestionBank(questionBankId) {
   return Question.updateMany({ questionBank: questionBankId }, { $set: { questionBank: null } });
 }
-  
+
+function deleteByQuestionBank(questionBankId) {
+  return Question.deleteMany({ questionBank: questionBankId });
+}
+
 async function countByQuestionBank() {
   const rows = await Question.aggregate([
     { $match: { questionBank: { $ne: null } } },
@@ -48,4 +52,4 @@ async function countByQuestionBank() {
   return new Map(rows.map((row) => [row._id.toString(), row.count]));
 }
 
-module.exports = { findAll, findById, findByQuestionBank, countByQuestionBank, create, createMany, updateById, deleteById, clearQuestionBank };
+module.exports = { findAll, findById, findByQuestionBank, countByQuestionBank, create, createMany, updateById, deleteById, clearQuestionBank, deleteByQuestionBank };

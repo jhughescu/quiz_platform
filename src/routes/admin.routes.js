@@ -15,6 +15,8 @@ const { deploymentSchema } = require('../validators/deployment.validators');
 const ROLES = require('../constants/roles');
 const router = express.Router();
 
+router.get('/languages', adminController.getLanguages);
+
 router.use(authenticate, authorize(ROLES.ADMIN, ROLES.SUPERUSER));
 
 router.post('/images', refreshAdminSession, uploadImageMiddleware, validateImage, adminController.uploadImage);

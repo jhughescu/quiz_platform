@@ -8,6 +8,7 @@ const imageCleanupService = require("./imageCleanup.service");
 
 async function createDeployment({
   name,
+  language,
   questionBankId,
   template,
   presentation,
@@ -31,6 +32,7 @@ async function createDeployment({
   const questionSnapshot = createQuestionSnapshot(questions);
   const deployment = await Deployment.create({
     name,
+    language,
     createdBy: user.sub,
     sourceQuestionBankId: questionBankId,
     template,

@@ -17,7 +17,14 @@
         Name
         <input type="text" id="deployment-name" required />
       </label>
-
+      <label>
+        Language
+        <select id="deployment-language" required>
+          {{#each languages}}
+            <option value="{{@key}}" {{#if @first}}selected{{/if}}>{{this}}</option>
+          {{/each}}
+        </select>
+      </label>
       <label>
         Question bank
         <select id="deployment-question-bank" required></select>

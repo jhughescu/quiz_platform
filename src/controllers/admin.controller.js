@@ -8,8 +8,12 @@ const submissionService = require("../services/submission.service");
 const Image = require("../models/Image");
 const imageStorageService = require("../services/imageStorage.service");
 const imageCleanupService = require("../services/imageCleanup.service");
+const languages = require("../config/languages");
 const ROLES = require("../constants/roles");
 
+function getLanguages(req, res) {
+  res.json(languages);
+}
 function canModify(question, user) {
   return (
     user.role === ROLES.SUPERUSER || String(question.createdBy) === user.sub
@@ -188,8 +192,27 @@ async function deleteQuestionBank(req, res, next) {
       return res.status(404).json({ error: "Question bank not found" });
     if (!canModify(existing, req.user))
       return res.status(403).json({ error: "Forbidden" });
-
-    await questionRepository.clearQuestionBank(existing._id);
+    const action = req.query.action;
+    if (!["delete", "unbank"].includes(action))
+      return res.status(400).json({ error: "Invalid deletion action" });
+    if (action === "unbank") {
+      await questionRepository.clearQuestionBank(existing._id);
+    } else {
+      const questions = await questionRepository.findByQuestionBank(
+        existing._id,
+      );
+      await questionRepository.deleteByQuestionBank(existing._id);
+      const imageIds = [
+        ...new Set(
+          questions
+            .filter((question) => question.image)
+            .map((question) => question.image.toString()),
+        ),
+      ];
+      for (const imageId of imageIds) {
+        await imageCleanupService.deleteImageIfUnused(imageId);
+      }
+    }
     await questionBankRepository.deleteById(req.params.id);
     res.status(204).send();
   } catch (err) {
@@ -346,7 +369,7 @@ async function exportQuestionBank(req, res, next) {
       });
     }
     const questionSet = questions.filter(
-      (q) => q.questionBank.toString() === questionBankId,
+      (q) => q.questionBank && q.questionBank.toString() === questionBankId,
     );
     let str = `@QuestionBank: ${questionBank.name}\n`;
     for (const question of questionSet) {
@@ -478,6 +501,7 @@ module.exports = {
   getSubmission,
   getTemplates,
   getPresentations,
+  getLanguages,
   uploadImage,
   cleanupOrphanedImages,
 };

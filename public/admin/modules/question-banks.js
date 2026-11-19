@@ -4,6 +4,14 @@ import { resetAdminTimeout } from "./session.js";
 
 const questionBankDialog = document.getElementById("question-bank-dialog");
 const questionBankForm = document.getElementById("question-bank-form");
+const deleteQuestionBankDialog = document.getElementById("delete-question-bank-dialog");
+const confirmDeleteQuestionBankDialog = document.getElementById("confirm-delete-question-bank-dialog");
+const deleteQuestionBankMessage = document.getElementById("delete-question-bank-message");
+const deleteBankCancelBtn = document.getElementById("delete-bank-cancel-btn");
+const deleteBankQuestionsBtn = document.getElementById("delete-bank-questions-btn");
+const unbankQuestionsBtn = document.getElementById("unbank-questions-btn");
+const confirmDeleteBankCancelBtn = document.getElementById("confirm-delete-bank-cancel-btn");
+const confirmDeleteBankBtn = document.getElementById("confirm-delete-bank-btn");
 const questionBankFormTitle = document.getElementById(
   "question-bank-form-title",
 );
@@ -11,6 +19,9 @@ const questionBankFormError = document.getElementById(
   "question-bank-form-error",
 );
 let editingQuestionBankId = null;
+let deletingQuestionBankId = null;
+let selectedDeletionAction = null;
+let reloadQuestions = null;
 
 document
   .getElementById("new-question-bank-btn")
@@ -88,14 +99,51 @@ async function renderQuestionBankOptions() {
   );
 }
 export async function deleteQuestionBank(id, loadQuestions) {
-  if (
-    !confirm("Delete this question bank? Its questions will remain unbanked.")
-  )
-    return;
-  await apiFetch(`/api/admin/question-banks/${id}`, { method: "DELETE" }, true);
-  resetAdminTimeout();
-  loadQuestions();
+  const bank = questionBanks.find((item) => item._id === id);
+  if (!bank) return;
+  deletingQuestionBankId = id;
+  reloadQuestions = loadQuestions;
+  selectedDeletionAction = null;
+  deleteQuestionBankMessage.textContent =
+    `This question bank contains ${bank.questionCount ?? 0} questions. Would you like to delete these or move them to 'unbanked'?`;
+  deleteQuestionBankDialog.showModal();
 }
+deleteBankCancelBtn.addEventListener("click", () => {
+  deleteQuestionBankDialog.close();
+});
+deleteBankQuestionsBtn.addEventListener("click", () => {
+  selectedDeletionAction = "delete";
+  deleteQuestionBankDialog.close();
+  confirmDeleteQuestionBankDialog.showModal();
+});
+unbankQuestionsBtn.addEventListener("click", () => {
+  selectedDeletionAction = "unbank";
+  deleteQuestionBankDialog.close();
+  confirmDeleteQuestionBankDialog.showModal();
+});
+confirmDeleteBankCancelBtn.addEventListener("click", () => {
+  confirmDeleteQuestionBankDialog.close();
+});
+confirmDeleteBankBtn.addEventListener("click", async () => {
+  try {
+    await apiFetch(
+      `/api/admin/question-banks/${deletingQuestionBankId}?action=${selectedDeletionAction}`,
+      { method: "DELETE" },
+      true,
+    );
+    confirmDeleteQuestionBankDialog.close();
+    resetAdminTimeout();
+    await reloadQuestions();
+  } catch (err) {
+    console.error("Question-bank deletion failed:", err);
+    confirmDeleteQuestionBankDialog.close();
+    alert(err.message || "Question-bank deletion failed.");
+  } finally {
+    deletingQuestionBankId = null;
+    selectedDeletionAction = null;
+    reloadQuestions = null;
+  }
+});
 let refreshQuestions;
 export function initQuestionBanks({ loadQuestions }) {
   refreshQuestions = loadQuestions;

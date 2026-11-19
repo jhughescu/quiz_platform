@@ -228,6 +228,7 @@ async function getActiveDeployment(id, includeAnswers = false) {
   return {
     id: deployment._id,
     name: deployment.name,
+    language: deployment.language,
     template: deployment.template,
     presentation: deployment.presentation,
     randomiseOptions: deployment.randomiseOptions,

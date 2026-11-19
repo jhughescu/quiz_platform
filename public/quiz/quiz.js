@@ -140,6 +140,7 @@ async function loadQuiz() {
       throw new Error(`HTTP ${response.status}`);
     }
     const quiz = await response.json();
+    document.documentElement.lang = quiz.language || "en-GB";
     quizTemplateId = quiz.template?.id || "default";
     quizTitle.textContent = quiz.name;
     document.body.classList.toggle("review-mode", Boolean(reviewToken));

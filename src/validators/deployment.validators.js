@@ -3,6 +3,7 @@ const templates = require("../config/templates");
 const presentations = require("../config/presentations");
 const deploymentSchema = Joi.object({
   name: Joi.string().trim().min(1).required(),
+  language: Joi.string().trim().default("en-GB"),
   questionBankId: Joi.string().hex().length(24).required(),
   template: Joi.object({
     id: Joi.string()

@@ -3,6 +3,7 @@ async function createDeployment(req, res) {
   try {
     const {
       name,
+      language,
       questionBankId,
       template,
       presentation,
@@ -12,6 +13,7 @@ async function createDeployment(req, res) {
 
     const deployment = await deploymentService.createDeployment({
       name,
+      language,
       questionBankId,
       template,
       presentation,
