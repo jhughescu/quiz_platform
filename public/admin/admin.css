@@ -105,8 +105,8 @@ form textarea {
   padding: 1.5rem;
   width: min(500px, 90vw);
 }
-#question-dialog img {
-  max-width: 100px;
+#question-dialog img, img {
+  max-width: 150px;
   height: auto;
   margin-top: 0.5rem;
 }

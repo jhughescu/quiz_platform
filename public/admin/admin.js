@@ -13,6 +13,7 @@ import {
 } from "./modules/questions.js";
 import { renderQuestionGroups } from "./modules/question-groups.js";
 import { loadSubmissions } from "./modules/submissions.js";
+import { loadImages } from "./modules/images.js";
 import { initUsers, loadUsers } from "./modules/users.js";
 import { loadDeployments, initDeployments } from "./modules/deployments.js";
 import {
@@ -66,6 +67,9 @@ function showDashboard() {
   if (view === "deployments") {
     loadDeployments();
   }
+  if (view === "images") {
+    loadImages();
+  }
   loadQuestions();
   loadSubmissions();
   if (user && user.role === "superuser") loadUsers();
@@ -116,6 +120,9 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     document.getElementById(`${btn.dataset.tab}-tab`).hidden = false;
     if (btn.dataset.tab === "questions") {
       loadQuestions(true);
+    }
+    if (btn.dataset.tab === "images") {
+      loadImages(true);
     }
     if (btn.dataset.tab === "deployments") {
       loadDeployments(true);

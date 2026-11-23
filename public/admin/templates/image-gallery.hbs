@@ -1,0 +1,38 @@
+<div class="image-gallery">
+  {{#each images}}
+    <div class="image-gallery-item" data-image-id="{{_id}}">
+      <img src="/api/images/{{_id}}" alt="{{originalName}}" loading="lazy" />
+      <div class="image-gallery-details">
+        <h3>{{originalName}}</h3>
+        <p>Uploaded: {{displayDate}}</p>
+        {{#if isUnused}}
+          <p class="image-unused">Unused – not associated with any question or deployment.</p>
+          {{#if ../allowDelete}}
+            <button type="button" class="image-delete-btn" data-image-id="{{_id}}">
+                Delete image
+            </button>
+            {{/if}}
+        {{else}}
+          {{#if questions.length}}
+            <p><strong>Questions:</strong></p>
+            <ul>
+              {{#each questions}}
+                <li>{{question}} <span class="image-question-bank">({{questionBank}})</span></li>
+              {{/each}}
+            </ul>
+          {{/if}}
+          {{#if deployments.length}}
+            <p><strong>Deployments:</strong></p>
+            <ul>
+              {{#each deployments}}
+                <li>{{name}}</li>
+              {{/each}}
+            </ul>
+          {{/if}}
+        {{/if}}
+      </div>
+    </div>
+  {{else}}
+    <p>No images have been uploaded.</p>
+  {{/each}}
+</div>

@@ -21,6 +21,8 @@ router.use(authenticate, authorize(ROLES.ADMIN, ROLES.SUPERUSER));
 
 router.post('/images', refreshAdminSession, uploadImageMiddleware, validateImage, adminController.uploadImage);
 router.post('/images/cleanup-orphans', refreshAdminSession, adminController.cleanupOrphanedImages);
+router.get('/images', refreshAdminSession, adminController.listImages);
+router.delete('/images/:id', validateObjectId('id'), refreshAdminSession, adminController.deleteImage);
 router.get('/export-all-questions', refreshAdminSession, adminController.exportAllQuestions);
 router.get('/export-question-bank/:id', refreshAdminSession, adminController.exportQuestionBank);
 router.get('/questions', refreshAdminSession, adminController.listQuestions);

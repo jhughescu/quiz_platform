@@ -1,5 +1,6 @@
 import { apiFetch } from "./api.js";
 import { resetAdminTimeout } from "./session.js";
+import { renderTemplate } from "../../js/template.js";
 
 let editingQuestionId = null;
 let qType = document.getElementById("q-type");
@@ -53,6 +54,45 @@ export function initQuestionForm({ apiFetch, loadQuestions }) {
   const questionForm = document.getElementById("question-form");
   const questionFormError = document.getElementById("question-form-error");
   const questionDialog = document.getElementById("question-dialog");
+  const imagePickerDialog = document.getElementById("image-picker-dialog");
+  const imagePickerGallery = document.getElementById("image-picker-gallery");
+  const imageInput = document.getElementById("q-image");
+  async function openImagePicker() {
+    imagePickerGallery.textContent = "Loading images...";
+    imagePickerDialog.showModal();
+    try {
+      const res = await apiFetch("/api/admin/images", {}, true);
+      if (!res.ok) {
+        throw new Error("Failed to load images");
+      }
+      const images = await res.json();
+      imagePickerGallery.innerHTML = await renderTemplate(
+        "/admin/templates/image-gallery.hbs",
+        {
+          images: images.map((image) => ({
+            ...image,
+            displayDate: new Date(image.createdAt).toLocaleDateString(),
+          })),
+        },
+      );
+      imagePickerGallery.querySelectorAll("[data-image-id]").forEach((item) => {
+        item.addEventListener("click", () => {
+          existingImageId = item.dataset.imageId;
+          imageInput.value = "";
+          displayExistingImage(existingImageId);
+          imagePickerDialog.close();
+        });
+      });
+    } catch (err) {
+      imagePickerGallery.textContent = err.message;
+    }
+  }
+  document
+    .getElementById("q-image-library-btn")
+    .addEventListener("click", openImagePicker);
+  document
+    .getElementById("image-picker-close-btn")
+    .addEventListener("click", () => imagePickerDialog.close());
   questionForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     questionFormError.textContent = "";
@@ -152,6 +192,7 @@ function displayExistingImage(imageId) {
   preview.src = `/api/images/${imageId}`;
   previewContainer.hidden = false;
 }
+
 export function openEditDialog(question) {
   editingQuestionId = question._id;
   existingImageId = question.image?._id || question.image || null;

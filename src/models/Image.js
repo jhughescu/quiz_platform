@@ -1,11 +1,14 @@
-const mongoose = require("mongoose");
 
+const mongoose = require("mongoose");
 const imageSchema = new mongoose.Schema(
   {
     storageKey: {
       type: String,
       required: true,
-      unique: true,
+    },
+    contentHash: {
+      type: String,
+      index: true,
     },
     originalName: {
       type: String,
@@ -27,5 +30,4 @@ const imageSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
 module.exports = mongoose.model("Image", imageSchema);

@@ -1,0 +1,47 @@
+.image-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.image-gallery-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.image-gallery-item img {
+  width: 140px;
+  height: 110px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.image-gallery-details {
+  flex: 1;
+}
+.image-gallery-details h3 {
+  margin-top: 0;
+}
+.image-gallery-details p {
+  margin: 6px 0;
+}
+.image-gallery-details ul {
+  margin-top: 4px;
+}
+.image-unused {
+  color: #666;
+  font-style: italic;
+}
+.image-question-bank {
+  color: #666;
+  font-size: 0.9em;
+}
+.image-delete-btn {
+  display: block;
+  margin-top: 10px;
+}
+.image-delete-error {
+  color: #c00;
+  margin-top: 8px;
+}

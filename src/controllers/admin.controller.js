@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const questionRepository = require("../repositories/question.repository");
 const questionBankRepository = require("../repositories/questionBank.repository");
 const submissionRepository = require("../repositories/submission.repository");
@@ -9,6 +10,8 @@ const Image = require("../models/Image");
 const imageStorageService = require("../services/imageStorage.service");
 const imageCleanupService = require("../services/imageCleanup.service");
 const languages = require("../config/languages");
+const { Question } = require("../models/Question");
+const Deployment = require("../models/Deployment");
 const ROLES = require("../constants/roles");
 
 function getLanguages(req, res) {
@@ -122,18 +125,10 @@ async function updateQuestion(req, res, next) {
       return res
         .status(bankError === "Forbidden" ? 403 : 404)
         .json({ error: bankError });
-
     const question = await questionRepository.updateById(
       req.params.id,
       req.body,
     );
-    if (
-      existing.image &&
-      Object.prototype.hasOwnProperty.call(req.body, "image") &&
-      String(existing.image) !== String(req.body.image || "")
-    ) {
-      await imageCleanupService.deleteImageIfUnused(existing.image);
-    }
     res.json(question);
   } catch (err) {
     next(err);
@@ -416,15 +411,39 @@ async function exportAllQuestions(req, res, next) {
   res.send(str);
 }
 
+
 async function uploadImage(req, res, next) {
   let storageKey;
+  let fileSaved = false;
   try {
+    const contentHash = crypto
+      .createHash("sha256")
+      .update(req.file.buffer)
+      .digest("hex");
+    const existingImage = await Image.findOne({ contentHash });
+    if (existingImage) {
+      const image = await Image.create({
+        storageKey: existingImage.storageKey,
+        contentHash,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        uploadedBy: req.user.sub,
+      });
+      return res.status(201).json({
+        id: image._id,
+        mimeType: image.mimeType,
+        size: image.size,
+      });
+    }
     storageKey = await imageStorageService.save(
       req.file.buffer,
       req.file.mimetype,
     );
+    fileSaved = true;
     const image = await Image.create({
       storageKey,
+      contentHash,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
@@ -436,7 +455,7 @@ async function uploadImage(req, res, next) {
       size: image.size,
     });
   } catch (err) {
-    if (storageKey) {
+    if (fileSaved && storageKey) {
       try {
         await imageStorageService.remove(storageKey);
       } catch (cleanupError) {
@@ -449,6 +468,7 @@ async function uploadImage(req, res, next) {
     next(err);
   }
 }
+
 async function cleanupOrphanedImages(req, res, next) {
   try {
     if (req.user.role !== ROLES.SUPERUSER) {
@@ -457,6 +477,94 @@ async function cleanupOrphanedImages(req, res, next) {
       });
     }
     const result = await imageCleanupService.cleanupOrphanedImages();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+async function deleteImage(req, res, next) {
+  try {
+    const image = await Image.findById(req.params.id);
+    if (!image) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+    if (
+      req.user.role !== ROLES.SUPERUSER &&
+      image.uploadedBy.toString() !== req.user.sub
+    ) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const deleted = await imageCleanupService.deleteImageIfUnused(image._id);
+    if (!deleted) {
+      return res.status(409).json({
+        error: "Image cannot be deleted because it is still in use",
+      });
+    }
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+async function listImages(req, res, next) {
+  try {
+    const filter =
+      req.user.role === ROLES.SUPERUSER ? {} : { uploadedBy: req.user.sub };
+    const images = await Image.find(filter)
+      .select("_id originalName mimeType size createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
+    const imageIds = images.map((image) => image._id);
+    const [questions, deployments] = await Promise.all([
+      Question.find({ image: { $in: imageIds } })
+        .select("image question questionBank")
+        .populate("questionBank", "name")
+        .lean(),
+      Deployment.find({ "questions.image": { $in: imageIds } })
+        .select("name questions.image")
+        .lean(),
+    ]);
+    const questionMap = new Map();
+    const deploymentMap = new Map();
+    for (const question of questions) {
+      const imageId = question.image.toString();
+      if (!questionMap.has(imageId)) {
+        questionMap.set(imageId, []);
+      }
+      questionMap.get(imageId).push({
+        question: question.question,
+        questionBank: question.questionBank?.name || "Unassigned",
+      });
+    }
+    for (const deployment of deployments) {
+      for (const deploymentQuestion of deployment.questions) {
+        if (!deploymentQuestion.image) continue;
+        const imageId = deploymentQuestion.image.toString();
+        if (!deploymentMap.has(imageId)) {
+          deploymentMap.set(imageId, []);
+        }
+        const associatedDeployments = deploymentMap.get(imageId);
+        if (
+          !associatedDeployments.some((item) => item.name === deployment.name)
+        ) {
+          associatedDeployments.push({
+            name: deployment.name,
+          });
+        }
+      }
+    }
+    const result = images.map((image) => {
+      const imageId = image._id.toString();
+      const associatedQuestions = questionMap.get(imageId) || [];
+      const associatedDeployments = deploymentMap.get(imageId) || [];
+      return {
+        ...image,
+        questions: associatedQuestions,
+        deployments: associatedDeployments,
+        isUnused:
+          associatedQuestions.length === 0 &&
+          associatedDeployments.length === 0,
+      };
+    });
     res.json(result);
   } catch (err) {
     next(err);
@@ -504,4 +612,6 @@ module.exports = {
   getLanguages,
   uploadImage,
   cleanupOrphanedImages,
+  deleteImage,
+  listImages,
 };

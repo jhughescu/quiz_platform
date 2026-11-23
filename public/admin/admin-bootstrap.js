@@ -22,4 +22,6 @@ const questionsSectionContainer = document.getElementById("questions-section-con
 questionsSectionContainer.innerHTML = await renderTemplate("/admin/templates/questions.hbs");
 const questionDialogsContainer = document.getElementById("question-dialogs-container");
 questionDialogsContainer.innerHTML = await renderTemplate("/admin/templates/question-dialogs.hbs");
+const imagesContainer = document.getElementById("images-container");
+imagesContainer.innerHTML = await renderTemplate("/admin/templates/images.hbs");
 await import("./admin.js");
