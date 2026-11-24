@@ -11,8 +11,13 @@ async function deleteImageIfUnused(imageId) {
     Deployment.exists({ "questions.image": imageId }),
   ]);
   if (questionReference || deploymentReference) return false;
-  await imageStorageService.remove(image.storageKey);
   await Image.deleteOne({ _id: imageId });
+  const remainingReferences = await Image.countDocuments({
+    storageKey: image.storageKey,
+  });
+  if (remainingReferences === 0) {
+    await imageStorageService.remove(image.storageKey);
+  }
   return true;
 }
 async function cleanupOrphanedImages() {

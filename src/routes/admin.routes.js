@@ -20,7 +20,7 @@ router.get('/languages', adminController.getLanguages);
 router.use(authenticate, authorize(ROLES.ADMIN, ROLES.SUPERUSER));
 
 router.post('/images', refreshAdminSession, uploadImageMiddleware, validateImage, adminController.uploadImage);
-router.post('/images/cleanup-orphans', refreshAdminSession, adminController.cleanupOrphanedImages);
+router.post('/images/cleanup-orphans', authorize(ROLES.SUPERUSER), refreshAdminSession, adminController.cleanupOrphanedImages);
 router.get('/images', refreshAdminSession, adminController.listImages);
 router.delete('/images/:id', validateObjectId('id'), refreshAdminSession, adminController.deleteImage);
 router.get('/export-all-questions', refreshAdminSession, adminController.exportAllQuestions);

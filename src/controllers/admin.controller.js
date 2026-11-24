@@ -411,7 +411,6 @@ async function exportAllQuestions(req, res, next) {
   res.send(str);
 }
 
-
 async function uploadImage(req, res, next) {
   let storageKey;
   let fileSaved = false;
@@ -420,27 +419,27 @@ async function uploadImage(req, res, next) {
       .createHash("sha256")
       .update(req.file.buffer)
       .digest("hex");
-    const existingImage = await Image.findOne({ contentHash });
-    if (existingImage) {
-      const image = await Image.create({
-        storageKey: existingImage.storageKey,
-        contentHash,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
-        uploadedBy: req.user.sub,
-      });
-      return res.status(201).json({
-        id: image._id,
-        mimeType: image.mimeType,
-        size: image.size,
+    const existingUserImage = await Image.findOne({
+      contentHash,
+      uploadedBy: req.user.sub,
+    });
+    if (existingUserImage) {
+      return res.status(200).json({
+        id: existingUserImage._id,
+        mimeType: existingUserImage.mimeType,
+        size: existingUserImage.size,
       });
     }
-    storageKey = await imageStorageService.save(
-      req.file.buffer,
-      req.file.mimetype,
-    );
-    fileSaved = true;
+    const existingSharedImage = await Image.findOne({ contentHash });
+    if (existingSharedImage) {
+      storageKey = existingSharedImage.storageKey;
+    } else {
+      storageKey = await imageStorageService.save(
+        req.file.buffer,
+        req.file.mimetype,
+      );
+      fileSaved = true;
+    }
     const image = await Image.create({
       storageKey,
       contentHash,
@@ -468,6 +467,7 @@ async function uploadImage(req, res, next) {
     next(err);
   }
 }
+
 
 async function cleanupOrphanedImages(req, res, next) {
   try {
