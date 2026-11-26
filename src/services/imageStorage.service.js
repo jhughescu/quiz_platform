@@ -33,4 +33,19 @@ async function read(storageKey) {
 async function remove(storageKey) {
   await fs.rm(getFilePath(storageKey), { force: true });
 }
-module.exports = { save, read, remove };
+async function list() {
+  try {
+    const entries = await fs.readdir(storageDirectory, {
+      withFileTypes: true,
+    });
+    return entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name);
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      return [];
+    }
+    throw err;
+  }
+}
+module.exports = { save, read, remove, list };

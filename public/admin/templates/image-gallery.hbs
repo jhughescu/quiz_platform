@@ -1,38 +1,46 @@
 <div class="image-gallery">
-  {{#each images}}
+    {{#each images}}
     <div class="image-gallery-item" data-image-id="{{_id}}">
-      <img src="/api/images/{{_id}}" alt="{{originalName}}" loading="lazy" />
-      <div class="image-gallery-details">
-        <h3>{{originalName}}</h3>
-        <p>Uploaded: {{displayDate}}</p>
-        {{#if isUnused}}
-          <p class="image-unused">Unused – not associated with any question or deployment.</p>
-          {{#if ../allowDelete}}
+        <img src="/api/images/{{_id}}" alt="{{originalName}}" loading="lazy" />
+        <div class="image-gallery-details">
+            <h3>{{originalName}}</h3>
+            <p>Uploaded: {{displayDate}}</p>
+            {{#if uploadedByOther}}
+            <p class="devnote">Uploaded by: <b>{{uploadedBy.email}}</b></p>
+            {{/if}}
+            {{#if isUnused}}
+            <p class="image-unused">Unused – not associated with any question or deployment.</p>
+            {{#if ../allowDelete}}
             <button type="button" class="image-delete-btn" data-image-id="{{_id}}">
                 Delete image
             </button>
             {{/if}}
-        {{else}}
-          {{#if questions.length}}
+            {{else}}
+            {{#if questions.length}}
             <p><strong>Questions:</strong></p>
             <ul>
-              {{#each questions}}
-                <li>{{question}} <span class="image-question-bank">({{questionBank}})</span></li>
-              {{/each}}
+                {{#each questions}}
+                <li>
+                    {{question}}
+                    {{#if hasQuestionBank}}
+                    <span class="image-question-bank">(Question Bank: {{questionBank}})</span>
+                    {{/if}}
+                </li>
+                {{/each}}
             </ul>
-          {{/if}}
-          {{#if deployments.length}}
+            {{/if}}
+            {{#if deployments.length}}
             <p><strong>Deployments:</strong></p>
             <ul>
-              {{#each deployments}}
+                {{#each deployments}}
                 <li>{{name}}</li>
-              {{/each}}
+                {{/each}}
             </ul>
-          {{/if}}
-        {{/if}}
-      </div>
+            {{/if}}
+            {{/if}}
+        </div>
     </div>
-  {{else}}
+    {{else}}
     <p>No images have been uploaded.</p>
-  {{/each}}
+    {{/each}}
 </div>

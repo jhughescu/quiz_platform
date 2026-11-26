@@ -96,29 +96,29 @@ export function initQuestionForm({ apiFetch, loadQuestions }) {
   questionForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     questionFormError.textContent = "";
-    const payload = buildQuestionPayload();
-    if (selectedImageFile) {
-      const formData = new FormData();
-      formData.append("image", selectedImageFile);
-      const uploadRes = await apiFetch(
-        "/api/admin/images",
-        { method: "POST", body: formData },
-        true,
-      );
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) {
-        throw new Error(uploadData.error || "Image upload failed");
-      }
-      payload.image = uploadData.id;
-    } else {
-      payload.image = existingImageId;
-    }
-    const editingQuestionId = getEditingQuestionId();
-    const path = editingQuestionId
-      ? `/api/admin/questions/${editingQuestionId}`
-      : "/api/admin/questions";
-    const method = editingQuestionId ? "PUT" : "POST";
     try {
+      const payload = buildQuestionPayload();
+      if (selectedImageFile) {
+        const formData = new FormData();
+        formData.append("image", selectedImageFile);
+        const uploadRes = await apiFetch(
+          "/api/admin/images",
+          { method: "POST", body: formData },
+          true,
+        );
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.error || "Image upload failed");
+        }
+        payload.image = uploadData.id;
+      } else {
+        payload.image = existingImageId;
+      }
+      const editingQuestionId = getEditingQuestionId();
+      const path = editingQuestionId
+        ? `/api/admin/questions/${editingQuestionId}`
+        : "/api/admin/questions";
+      const method = editingQuestionId ? "PUT" : "POST";
       const res = await apiFetch(
         path,
         { method, body: JSON.stringify(payload) },

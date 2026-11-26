@@ -135,3 +135,8 @@ form textarea {
 #deployment-randomise-options {
   margin: 0;
 }
+.devnote {
+  /* font-size: 0.85rem; */
+  font-style: italic;
+  color: #a00505;
+}

@@ -468,7 +468,6 @@ async function uploadImage(req, res, next) {
   }
 }
 
-
 async function cleanupOrphanedImages(req, res, next) {
   try {
     if (req.user.role !== ROLES.SUPERUSER) {
@@ -477,6 +476,45 @@ async function cleanupOrphanedImages(req, res, next) {
       });
     }
     const result = await imageCleanupService.cleanupOrphanedImages();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+async function cleanupOrphanedFiles(req, res, next) {
+  try {
+    if (req.user.role !== ROLES.SUPERUSER) {
+      return res.status(403).json({
+        error: "You do not have permission to clean up orphaned image files",
+      });
+    }
+    const result = await imageCleanupService.cleanupOrphanedFiles();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+async function reconcileImageStorage(req, res, next) {
+  try {
+    if (req.user.role !== ROLES.SUPERUSER) {
+      return res.status(403).json({
+        error: "You do not have permission to reconcile image storage",
+      });
+    }
+    const result = await imageCleanupService.reconcileImageStorage();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+async function reportMissingImageReferences(req, res, next) {
+  try {
+    if (req.user.role !== ROLES.SUPERUSER) {
+      return res.status(403).json({
+        error: "You do not have permission to report missing image references",
+      });
+    }
+    const result = await imageCleanupService.reportMissingImageReferences();
     res.json(result);
   } catch (err) {
     next(err);
@@ -509,10 +547,13 @@ async function listImages(req, res, next) {
   try {
     const filter =
       req.user.role === ROLES.SUPERUSER ? {} : { uploadedBy: req.user.sub };
-    const images = await Image.find(filter)
-      .select("_id originalName mimeType size createdAt")
-      .sort({ createdAt: -1 })
-      .lean();
+    let imageQuery = Image.find(filter).select(
+      "_id originalName mimeType size createdAt",
+    );
+    if (req.user.role === ROLES.SUPERUSER) {
+      imageQuery = imageQuery.populate("uploadedBy", "email");
+    }
+    const images = await imageQuery.sort({ createdAt: -1 }).lean();
     const imageIds = images.map((image) => image._id);
     const [questions, deployments] = await Promise.all([
       Question.find({ image: { $in: imageIds } })
@@ -530,9 +571,13 @@ async function listImages(req, res, next) {
       if (!questionMap.has(imageId)) {
         questionMap.set(imageId, []);
       }
+      const questionBankName = question.questionBank?.name || "Unassigned";
       questionMap.get(imageId).push({
         question: question.question,
-        questionBank: question.questionBank?.name || "Unassigned",
+        questionBank: questionBankName,
+        hasQuestionBank: !["unassigned", "unbanked"].includes(
+          questionBankName.trim().toLowerCase(),
+        ),
       });
     }
     for (const deployment of deployments) {
@@ -558,6 +603,8 @@ async function listImages(req, res, next) {
       const associatedDeployments = deploymentMap.get(imageId) || [];
       return {
         ...image,
+        uploadedByOther:
+          image.uploadedBy && image.uploadedBy._id.toString() !== req.user.sub,
         questions: associatedQuestions,
         deployments: associatedDeployments,
         isUnused:
@@ -612,6 +659,9 @@ module.exports = {
   getLanguages,
   uploadImage,
   cleanupOrphanedImages,
+  cleanupOrphanedFiles,
   deleteImage,
   listImages,
+  reconcileImageStorage,
+  reportMissingImageReferences,
 };
