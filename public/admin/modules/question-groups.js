@@ -1,8 +1,17 @@
-import { getQuestionBanks, openQuestionBankDialog, deleteQuestionBank } from "./question-banks.js";
+import {
+  getQuestionBanks,
+  openQuestionBankDialog,
+  deleteQuestionBank,
+} from "./question-banks.js";
 import { openEditDialog, deleteQuestion } from "./questions.js";
 import { renderTemplate } from "../../js/template.js";
-export async function renderQuestionGroups(questions, { questionGroups, loadQuestions, exportQuestionBank, showOwner }) {
-  const unbankedQuestions = questions.filter((question) => !question.questionBank);
+export async function renderQuestionGroups(
+  questions,
+  { questionGroups, loadQuestions, exportQuestionBank, showOwner },
+) {
+  const unbankedQuestions = questions.filter(
+    (question) => !question.questionBank,
+  );
   const groups = [
     {
       name: "Unbanked Questions",
@@ -11,7 +20,9 @@ export async function renderQuestionGroups(questions, { questionGroups, loadQues
     },
     ...getQuestionBanks().map((bank) => ({
       name: bank.name,
-      questions: questions.filter((question) => question.questionBank === bank._id),
+      questions: questions.filter(
+        (question) => question.questionBank === bank._id,
+      ),
       bank,
     })),
   ];
@@ -24,23 +35,53 @@ export async function renderQuestionGroups(questions, { questionGroups, loadQues
       ownerEmail: question.createdBy?.email || "Unknown",
     })),
   }));
-  questionGroups.innerHTML = await renderTemplate("/admin/templates/question-groups.hbs", {
-    groups: groupData,
-    showOwner,
-  });
+  questionGroups.innerHTML = await renderTemplate(
+    "/admin/templates/question-groups.hbs",
+    {
+      groups: groupData,
+      showOwner,
+    },
+  );
+  questionGroups
+    .querySelectorAll(".question-group-toggle")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const content = document.getElementById(
+          button.getAttribute("aria-controls"),
+        );
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        content.hidden = expanded;
+        button.setAttribute("aria-expanded", String(!expanded));
+        button.querySelector(".group-toggle-icon").textContent = expanded
+          ? "▶"
+          : "▼";
+      });
+    });
   questionGroups.querySelectorAll("tr[data-id]").forEach((row) => {
     const id = row.dataset.id;
     const question = questions.find((q) => q._id === id);
-    row.querySelector(".edit-btn").addEventListener("click", () => openEditDialog(question));
-    row.querySelector(".delete-btn").addEventListener("click", () => deleteQuestion(id, loadQuestions));
+    row
+      .querySelector(".edit-btn")
+      .addEventListener("click", () => openEditDialog(question));
+    row
+      .querySelector(".delete-btn")
+      .addEventListener("click", () => deleteQuestion(id, loadQuestions));
   });
   questionGroups.querySelectorAll(".export-bank-btn").forEach((button) => {
-    button.addEventListener("click", () => exportQuestionBank(button.dataset.id));
+    button.addEventListener("click", () =>
+      exportQuestionBank(button.dataset.id),
+    );
   });
   questionGroups.querySelectorAll(".edit-bank-btn").forEach((button) => {
-    button.addEventListener("click", () => openQuestionBankDialog(getQuestionBanks().find((bank) => bank._id === button.dataset.id)));
+    button.addEventListener("click", () =>
+      openQuestionBankDialog(
+        getQuestionBanks().find((bank) => bank._id === button.dataset.id),
+      ),
+    );
   });
   questionGroups.querySelectorAll(".delete-bank-btn").forEach((button) => {
-    button.addEventListener("click", () => deleteQuestionBank(button.dataset.id, loadQuestions));
+    button.addEventListener("click", () =>
+      deleteQuestionBank(button.dataset.id, loadQuestions),
+    );
   });
 }

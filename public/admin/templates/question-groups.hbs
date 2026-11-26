@@ -1,77 +1,54 @@
 {{#each groups}}
   <section class="question-group">
-
     <div class="question-group-header">
-      <h3>
-        {{name}}
-        {{#if showOwner}}
-          {{#if bank}}
-            ({{ownerEmail}})
+      <button type="button" class="question-group-toggle" aria-expanded="false" aria-controls="question-group-content-{{@index}}">
+        <span class="group-toggle-icon">▶</span>
+        <h3>
+          {{name}}
+          {{#if showOwner}}
+            {{#if bank}}
+              ({{ownerEmail}})
+            {{/if}}
           {{/if}}
-        {{/if}}
-      </h3>
-
+        </h3>
+        <span class="question-count">({{questions.length}} questions)</span>
+      </button>
       {{#if bank}}
-        <div>
-          <button
-            type="button"
-            class="export-bank-btn"
-            data-id="{{bank._id}}"
-          >
-            Export
-          </button>
-
-          <button
-            type="button"
-            class="edit-bank-btn"
-            data-id="{{bank._id}}"
-          >
-            Edit
-          </button>
-
-          <button
-            type="button"
-            class="delete-bank-btn"
-            data-id="{{bank._id}}"
-          >
-            Delete
-          </button>
+        <div class="question-group-actions">
+          <button type="button" class="export-bank-btn" data-id="{{bank._id}}">Export</button>
+          <button type="button" class="edit-bank-btn" data-id="{{bank._id}}">Edit</button>
+          <button type="button" class="delete-bank-btn" data-id="{{bank._id}}">Delete</button>
         </div>
       {{/if}}
     </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Question</th>
-
-          {{#if ../showOwner}}
-            <th>Owner</th>
-          {{/if}}
-
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {{#each questions}}
-          <tr data-id="{{_id}}">
-            <td>{{type}}</td>
-            <td>{{{question}}}</td>
-
-            {{#if ../../showOwner}}
-              <td>{{ownerEmail}}</td>
+    <div id="question-group-content-{{@index}}" class="question-group-content" hidden>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Question</th>
+            {{#if ../showOwner}}
+              <th>Owner</th>
             {{/if}}
-
-            <td>
-              <button type="button" class="edit-btn">Edit</button>
-              <button type="button" class="delete-btn">Delete</button>
-            </td>
+            <th>Actions</th>
           </tr>
-        {{/each}}
-      </tbody>
-    </table>
-
+        </thead>
+        <tbody>
+          {{#each questions}}
+            <tr data-id="{{_id}}">
+              <td>{{type}}</td>
+              <td>{{{question}}}</td>
+              {{#if ../../showOwner}}
+                <td>{{ownerEmail}}</td>
+              {{/if}}
+              <td>
+                <button type="button" class="edit-btn">Edit</button>
+                <button type="button" class="delete-btn">Delete</button>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
   </section>
 {{/each}}
